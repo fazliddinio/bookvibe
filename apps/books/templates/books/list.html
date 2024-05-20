@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Kitoblar - Bookvibe{% endblock %}
+
+{% block content %}
+<!-- Takomillashtirilgan Hero Bo'lim -->
+<section class="hero-landing">
+    <div class="container" style="max-width: 1100px;">
+        <div class="row align-items-center py-5">
+            <div class="col-lg-12 text-center">
+                <div class="hero-content">
+                    <h1 class="hero-title mb-4">O'zingiz Uchun Mukammal Kitobni Toping</h1>
+                    
+                    <div class="hero-cta-group">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'books:add-book' %}" class="btn btn-lg btn-primary shadow-lg">
+                                <i class="fas fa-plus-circle me-2"></i>Yangi Kitob Qo'shish
+                            </a>
+                            <a href="{% url 'reading_lists:lists' %}" class="btn btn-lg btn-outline-primary">
+                                <i class="fas fa-book-reader me-2"></i>Mening Kutubxonam
+                            </a>
+                        {% else %}
+                            <a href="{% url 'users:register' %}" class="btn btn-lg btn-primary shadow-lg px-5">
+                                <i class="fas fa-user-plus me-2"></i>Bepul Ro'yxatdan O'tish
+                            </a>
+                            <a href="{% url 'users:login' %}" class="btn btn-lg btn-outline-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Kirish
+                            </a>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Haqiqiy Ma'lumotlar -->
+                    <div class="hero-stats mt-5">
+                        <div class="d-flex flex-wrap gap-4 justify-content-center">
+                            <div class="stat-item">
+                                <div class="stat-value">{{ total_books|default:"0" }}+</div>
+                                <div class="stat-label">Kitoblar</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">{{ total_readers|default:"0" }}+</div>
+                                <div class="stat-label">O'quvchilar</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">{{ total_reviews|default:"0" }}+</div>
+                                <div class="stat-label">Sharhlar</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Kitoblar Bo'limi -->
+<section class="py-16">
+    <div class="container py-4" style="max-width: 1100px;">
+        <!-- Qidiruv Bo'limi -->
+        <div class="card mb-12 animate-fade-in-up">
+            <div class="card-body">
+                <form method="get" class="search-container">
+                    <div class="position-relative">
+                        <input type="text" name="q" class="search-input" 
+                               placeholder="Nomi, muallif yoki janr bo'yicha qidirish..." 
+                               value="{{ search_query }}">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-search me-2"></i>Kitoblarni Qidirish
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Kitoblar To'plami -->
+        {% if page_obj %}
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
+                {% for book in page_obj %}
+                    <div class="col">
+                        <div class="book-card-enhanced">
+                            <div class="text-center mb-2">
+                                {% if book.cover_image %}
+                                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-enhanced">
+                                {% else %}
+                                    <div class="book-cover-placeholder mx-auto" style="width: 110px; height: 110px;">
+                                        <div class="d-flex align-items-center justify-content-center h-100">
+                                            <i class="fas fa-book" style="font-size: 2rem; color: var(--text-muted);"></i>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="text-center mb-2 flex-grow-1">
+                                <h3 class="fw-semibold mb-1" style="font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.2;">{{ book.title }}</h3>
+                            </div>
+                        
+                        <!-- Sharhlar Ko'rsatish -->
+                        <div class="text-center mb-2">
+                            <div class="rating-stars justify-content-center mb-1" style="font-size: 0.75rem;">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= book.get_average_rating %}
+                                        <span class="rating-star">★</span>
+                                    {% else %}
+                                        <span class="rating-star empty">☆</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div style="font-size: 0.75rem;">
+                                <span class="fw-medium text-primary">{{ book.get_average_rating }}/5</span>
+                                <span class="text-muted">({{ book.get_total_reviews }})</span>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-auto">
+                            <a href="{% url 'books:detail' book.id %}" class="btn btn-primary btn-sm w-100" style="font-size: 0.75rem; padding: 0.35rem 0.5rem;">
+                                <i class="fas fa-eye me-1"></i>Ko'rish
+                            </a>
+                        </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Sahifalash -->
+            {% if page_obj.has_other_pages %}
+                <div class="pagination-enhanced">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}" 
+                           class="pagination-btn">
+                            <i class="fas fa-chevron-left"></i> Oldingi
+                        </a>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <span class="pagination-btn active">{{ num }}</span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}" 
+                               class="pagination-btn">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}" 
+                           class="pagination-btn">
+                            Keyingi <i class="fas fa-chevron-right"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state-enhanced">
+                <div class="empty-icon-enhanced"><i class="fas fa-book-open"></i></div>
+                <h3 class="empty-title-enhanced">Hech qanday kitob topilmadi</h3>
+                <p class="empty-description-enhanced">Qidiruv shartlaringizni o'zgartiring yoki barcha kitoblarni ko'rish uchun quyidagi tugmani bosing.</p>
+                <a href="{% url 'books:list' %}" class="btn btn-primary btn-lg">
+                    Barcha Kitoblarni Ko'rish
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

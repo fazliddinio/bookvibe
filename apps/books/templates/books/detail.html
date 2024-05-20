@@ -1,0 +1,831 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load user_filters %}
+
+{% block title %}{{ book.title }} - BookVibe{% endblock %}
+
+{% block extra_css %}
+<style>
+.purchase-link-icon {
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.purchase-link-icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.purchase-links-compact {
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(25, 135, 84, 0.05) 100%);
+    border-radius: 12px;
+    border: 1px solid rgba(40, 167, 69, 0.1);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-6" style="max-width: 1100px;">
+    <!-- Back to Books Link -->
+    <div class="mb-4">
+        <a href="{% url 'books:list' %}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-arrow-left me-2"></i>Kitoblarga Qaytish
+        </a>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Book Details Card -->
+        <div class="col-12">
+            <div class="card shadow-lg border-0 animate-fade-in-up" style="border-radius: 20px;">
+                <div class="card-body p-4 p-md-5">
+                    <div class="row g-4">
+                        <!-- Book Cover Section -->
+                        <div class="col-lg-4 col-md-5">
+                            <div class="text-center sticky-top" style="top: 100px;">
+                                <div class="book-cover-wrapper mb-4">
+                                {% if book.cover_image %}
+                                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" 
+                                             class="book-detail-cover rounded-3 shadow-lg img-fluid" style="border-radius: 15px !important;">
+                                {% else %}
+                                        <div class="book-cover-placeholder-large bg-gradient rounded-3 shadow-lg d-flex align-items-center justify-content-center" style="height: 400px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%); border-radius: 15px !important;">
+                                            <div class="text-center">
+                                                <i class="fas fa-book text-white mb-3" style="font-size: 4rem;"></i>
+                                                <p class="text-white mb-0">Muqova rasmi yo'q</p>
+                                            </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                                
+                                <!-- Quick Stats -->
+                                <div class="d-flex justify-content-around mb-4 p-3 bg-light rounded-3" style="border-radius: 12px !important;">
+                                    <div class="text-center">
+                                        <div class="h4 mb-1 text-primary fw-bold">{{ avg_rating }}</div>
+                                        <small class="text-muted">O'rtacha Reyting</small>
+                                    </div>
+                                    <div class="text-center border-start ps-3">
+                                        <div class="h4 mb-1 text-primary fw-bold">{{ total_reviews }}</div>
+                                        <small class="text-muted">Sharhlar</small>
+                                    </div>
+                                </div>
+                                
+                                <!-- Add to Shelf Section -->
+                                {% if user.is_authenticated %}
+                                    <div class="add-to-shelf-section p-3 bg-light rounded-3" style="border-radius: 12px !important;">
+                                        <h6 class="fw-bold mb-3"><i class="fas fa-bookmark me-2"></i>O'qishlarimga Qo'shish</h6>
+                                        <form method="post" action="{% url 'reading_lists:add_to_shelf' book.id %}">
+                                            {% csrf_token %}
+                                            <select name="shelf_name" class="form-select mb-3" required style="border-radius: 10px;">
+                                                <option value="">Kategoriyani tanlang...</option>
+                                                <option value="To Read">📚 O'qimoqchiman</option>
+                                                <option value="Reading Now">📖 O'qiyapman</option>
+                                                <option value="Read">✅ O'qildi</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-primary w-100" style="border-radius: 10px; padding: 0.75rem; font-weight: 600;">
+                                                <i class="fas fa-plus me-2"></i>Javonga Qo'shish
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center p-3 bg-light rounded-3" style="border-radius: 12px !important;">
+                                        <p class="text-muted mb-2">Kitobni saqlamoqchimisiz?</p>
+                                        <a href="{% url 'users:login' %}" class="btn btn-primary btn-sm w-100" style="border-radius: 10px;">Kirish</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                                
+                        <!-- Book Info Section -->
+                        <div class="col-lg-8 col-md-7">
+                            <div class="book-info-section">
+                                <!-- Title & Author -->
+                                <div class="mb-4">
+                                    <h1 class="display-5 fw-bold mb-3">{{ book.title }}</h1>
+                                    <p class="lead text-muted mb-3">
+                                        <i class="fas fa-user-pen me-2"></i>{{ book.get_primary_author|default:"Noma'lum Muallif" }} tomonidan
+                                    </p>
+                                    
+                                    <!-- Star Rating -->
+                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                        <div class="star-rating-large">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= avg_rating %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-warning"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <span class="text-muted">{{ avg_rating }}/5 ({{ total_reviews }} sharh{{ total_reviews|pluralize }})</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Book Details Grid -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-sm-6">
+                                        <div class="info-item p-3 bg-light rounded-3" style="border-radius: 12px !important;">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-tag text-primary me-3 fs-4"></i>
+                                                <div>
+                                                    <small class="text-muted d-block">Janr</small>
+                                                    <strong>{{ book.genre.name|default:"Ma'lumot yo'q" }}</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="info-item p-3 bg-light rounded-3" style="border-radius: 12px !important;">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-calendar text-primary me-3 fs-4"></i>
+                                                <div>
+                                                    <small class="text-muted d-block">Nashr Etilgan</small>
+                                                    <strong>{{ book.publication_date|date:"Y"|default:"Ma'lumot yo'q" }}</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="info-item p-3 bg-light rounded-3" style="border-radius: 12px !important;">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-book-open text-primary me-3 fs-4"></i>
+                                                <div>
+                                                    <small class="text-muted d-block">Sahifalar</small>
+                                                    <strong>{{ book.page_count|default:"Ma'lumot yo'q" }}</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="info-item p-3 bg-light rounded-3" style="border-radius: 12px !important;">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-language text-primary me-3 fs-4"></i>
+                                                <div>
+                                                    <small class="text-muted d-block">Til</small>
+                                                    <strong>{{ book.language|default:"Ma'lumot yo'q" }}</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% if book.isbn %}
+                                    <div class="col-sm-6">
+                                        <div class="info-item p-3 bg-light rounded-3" style="border-radius: 12px !important;">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-barcode text-primary me-3 fs-4"></i>
+                                                <div>
+                                                    <small class="text-muted d-block">ISBN</small>
+                                                    <strong>{{ book.isbn }}</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% if book.publisher %}
+                                    <div class="col-sm-6">
+                                        <div class="info-item p-3 bg-light rounded-3" style="border-radius: 12px !important;">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-building text-primary me-3 fs-4"></i>
+                                                <div>
+                                                    <small class="text-muted d-block">Nashriyot</small>
+                                                    <strong>{{ book.publisher }}</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Purchase Links as Icons -->
+                                {% if purchase_links %}
+                                <div class="purchase-links-compact mb-4">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <small class="text-muted me-2">
+                                            <i class="fas fa-shopping-cart"></i> Xarid:
+                                        </small>
+                                        {% for link in purchase_links %}
+                                            <a href="{{ link.url }}" 
+                                               target="_blank" 
+                                               rel="noopener noreferrer" 
+                                               class="purchase-link-icon btn btn-sm btn-outline-success"
+                                               data-bs-toggle="tooltip"
+                                               title="{% if link.is_verified %}✓ {% endif %}{{ link.seller_name }}da xarid qilish"
+                                               style="border-radius: 8px; padding: 0.4rem 0.8rem;">
+                                                <i class="fas fa-external-link-alt me-1"></i>
+                                                {{ link.seller_name }}
+                                                {% if link.is_verified %}
+                                                    <i class="fas fa-check-circle text-primary ms-1"></i>
+                                                {% endif %}
+                                            </a>
+                                        {% endfor %}
+                                        {% if user.is_authenticated %}
+                                            <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#addPurchaseLinkModal"
+                                                    data-bs-toggle="tooltip"
+                                                    title="Yangi havola qo'shish"
+                                                    style="border-radius: 8px; padding: 0.4rem 0.8rem;">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Description -->
+                                {% if book.description %}
+                                    <div class="book-description mb-4">
+                                        <h5 class="fw-bold mb-3">
+                                            <i class="fas fa-align-left me-2"></i>Kitob Haqida
+                                        </h5>
+                                        <div class="p-3 bg-light rounded-3" style="border-radius: 12px !important;">
+                                            <p class="mb-0 lh-lg" style="word-wrap: break-word; white-space: pre-wrap;">{{ book.description }}</p>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reviews Section -->
+        <div class="col-12">
+            <div class="card shadow-lg border-0 animate-fade-in-up" id="reviews-section" style="border-radius: 20px;">
+                <div class="card-header bg-gradient-primary text-white" style="border-radius: 20px 20px 0 0 !important; padding: 1.5rem;">
+                    <h4 class="mb-0 fw-bold">
+                        <i class="fas fa-comments me-2"></i>
+                        {% if user.is_authenticated %}
+                            {% if user_review %}
+                                Sizning Sharhingiz
+                            {% else %}
+                                Sharh Yozish
+                            {% endif %}
+                        {% else %}
+                            Kitob Sharhlari
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    {% if user.is_authenticated %}
+                        {% if user_review %}
+                            <!-- Display User's Existing Review -->
+                            <div id="user-review-display" class="user-review-card p-4 rounded-3 mb-4" style="background: linear-gradient(135deg, rgba(46, 90, 138, 0.1) 0%, rgba(70, 130, 180, 0.1) 100%); border: 2px solid rgba(46, 90, 138, 0.3); border-radius: 12px !important;">
+                                <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-3">
+                                    <h5 class="fw-bold mb-0" style="color: var(--primary-color);">
+                                        <i class="fas fa-user-check me-2"></i>Sizning Sharhingiz
+                                    </h5>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="edit-review-btn" onclick="toggleEditReview()" style="border-radius: 8px;">
+                                        <i class="fas fa-edit me-1"></i>Tahrirlash
+                                    </button>
+                                </div>
+                                <div class="mb-3">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= user_review.stars_given %}
+                                            <i class="fas fa-star" style="color: var(--primary-color); font-size: 1.2rem;"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-muted" style="font-size: 1.2rem;"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-2 fw-semibold" style="color: var(--primary-color);">{{ user_review.stars_given }}/5</span>
+                                </div>
+                                <p class="mb-0 text-secondary" style="white-space: pre-wrap; word-wrap: break-word;">{{ user_review.comment }}</p>
+                                <small class="text-muted mt-3 d-block">
+                                    <i class="fas fa-clock me-1"></i>{{ user_review.created_time|date:"M d, Y" }} da qo'shilgan
+                                </small>
+                            </div>
+                            
+                            <!-- Edit Review Form (Hidden by Default) -->
+                            <div id="edit-review-form" style="display: none;">
+                                <div class="alert alert-warning d-flex align-items-center mb-3" style="border-radius: 12px;">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <span>Sharhni tahrirlash. Bekor qilish uchun "Bekor Qilish" tugmasini bosing.</span>
+                                </div>
+                                <form method="post" action="{% url 'books:reviews' book.id %}" class="review-form">
+                            {% csrf_token %}
+                                    <div class="row g-4">
+                                        <div class="col-md-12">
+                                            <label for="{{ review_form.stars_given.id_for_label }}" class="form-label fw-bold">
+                                                <i class="fas fa-star text-warning me-2"></i>Sizning Bahoingiz
+                                            </label>
+                                            <div class="star-rating-select">
+                                                <select name="{{ review_form.stars_given.name }}" id="{{ review_form.stars_given.id_for_label }}" 
+                                                        class="form-select form-select-lg" required style="border-radius: 10px;">
+                                                    <option value="">⭐ Bahoingizni tanlang</option>
+                                                    <option value="5" {% if user_review.stars_given == 5 %}selected{% endif %}>⭐⭐⭐⭐⭐ A'lo</option>
+                                                    <option value="4" {% if user_review.stars_given == 4 %}selected{% endif %}>⭐⭐⭐⭐ Yaxshi</option>
+                                                    <option value="3" {% if user_review.stars_given == 3 %}selected{% endif %}>⭐⭐⭐ O'rtacha</option>
+                                                    <option value="2" {% if user_review.stars_given == 2 %}selected{% endif %}>⭐⭐ Yomon</option>
+                                                    <option value="1" {% if user_review.stars_given == 1 %}selected{% endif %}>⭐ Juda Yomon</option>
+                                </select>
+                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label for="{{ review_form.comment.id_for_label }}" class="form-label fw-bold">
+                                                <i class="fas fa-comment-dots me-2"></i>Sizning Sharhingiz
+                                            </label>
+                                            <textarea name="{{ review_form.comment.name }}" id="{{ review_form.comment.id_for_label }}" 
+                                                      class="form-control form-control-lg" rows="5" 
+                                                      placeholder="Kitob haqidagi fikrlaringizni yozing..." 
+                                                      required style="border-radius: 10px;">{{ user_review.comment|default:'' }}</textarea>
+                                            <small class="form-text text-muted mt-2 d-block">
+                                                <i class="fas fa-lightbulb me-1"></i>Maslahat: Nima yoqqan, nima yaxshilanishi mumkin va kim o'qishi kerakligini yozing
+                                            </small>
+                                        </div>
+                                        <div class="col-12 d-flex gap-2">
+                                            <button type="submit" class="btn btn-primary btn-lg px-4" style="border-radius: 10px;">
+                                                <i class="fas fa-save me-2"></i>Sharhni Yangilash
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-lg px-4" onclick="toggleEditReview()" style="border-radius: 10px;">
+                                                <i class="fas fa-times me-2"></i>Bekor Qilish
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                                {% else %}
+                            <!-- New Review Form -->
+                            <form method="post" action="{% url 'books:reviews' book.id %}" class="review-form">
+                                {% csrf_token %}
+                                <div class="row g-4">
+                                    <div class="col-md-12">
+                                        <label for="{{ review_form.stars_given.id_for_label }}" class="form-label fw-bold">
+                                            <i class="fas fa-star text-warning me-2"></i>Sizning Bahoingiz
+                                        </label>
+                                        <div class="star-rating-select">
+                                            <select name="{{ review_form.stars_given.name }}" id="{{ review_form.stars_given.id_for_label }}" 
+                                                    class="form-select form-select-lg" required style="border-radius: 10px;">
+                                                <option value="">⭐ Bahoingizni tanlang</option>
+                                                <option value="5">⭐⭐⭐⭐⭐ A'lo</option>
+                                                <option value="4">⭐⭐⭐⭐ Yaxshi</option>
+                                                <option value="3">⭐⭐⭐ O'rtacha</option>
+                                                <option value="2">⭐⭐ Yomon</option>
+                                                <option value="1">⭐ Juda Yomon</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label for="{{ review_form.comment.id_for_label }}" class="form-label fw-bold">
+                                            <i class="fas fa-comment-dots me-2"></i>Sizning Sharhingiz
+                                        </label>
+                                        <textarea name="{{ review_form.comment.name }}" id="{{ review_form.comment.id_for_label }}" 
+                                                  class="form-control form-control-lg" rows="5" 
+                                                  placeholder="Kitob haqidagi fikrlaringizni yozing..." 
+                                                  required style="border-radius: 10px;"></textarea>
+                                        <small class="form-text text-muted mt-2 d-block">
+                                            <i class="fas fa-lightbulb me-1"></i>Maslahat: Nima yoqqan, nima yaxshilanishi mumkin va kim o'qishi kerakligini yozing
+                                        </small>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary btn-lg px-5" style="border-radius: 10px;">
+                                            <i class="fas fa-paper-plane me-2"></i>Sharh Yuborish
+                            </button>
+                                    </div>
+                                </div>
+                        </form>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-lock fs-1 text-muted mb-3"></i>
+                            <h5 class="mb-3">Sharh Yozish Uchun Kiring</h5>
+                            <p class="text-muted mb-4">Kitob haqidagi fikrlaringizni jamiyat bilan baham ko'ring</p>
+                            <a href="{% url 'users:login' %}" class="btn btn-primary btn-lg px-5" style="border-radius: 10px;">
+                                <i class="fas fa-sign-in-alt me-2"></i>Kirish
+                            </a>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Display Reviews -->
+                    {% if reviews %}
+                        <hr class="my-5">
+                        <div class="reviews-list">
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h5 class="fw-bold mb-0">
+                                    <i class="fas fa-comments me-2"></i>
+                                    Jamiyat Sharhlari
+                                    <span class="badge bg-primary ms-2">{{ reviews.count }}</span>
+                                </h5>
+                            </div>
+                            
+                            {% for review in reviews %}
+                                <div class="review-card border rounded-4 p-4 mb-4 bg-white shadow-sm hover-shadow-lg transition-all" id="review-{{ review.id }}" style="border-radius: 15px !important;">
+                                    <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-3">
+                                        <div class="d-flex align-items-start gap-3 flex-grow-1">
+                                            <!-- User Avatar and Info -->
+                                            <div>
+                                                {% if review.user.profile.profile_picture %}
+                                                    <img src="{{ review.user.profile.profile_picture.url }}" alt="{{ review.user.username }}" 
+                                                         class="rounded-circle border border-3 border-light shadow-sm" 
+                                                         style="width: 50px; height: 50px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center border border-3 border-light shadow-sm"
+                                                         style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);">
+                                                        <strong>
+                                                            {% if review.user.first_name %}
+                                                                {{ review.user.first_name|first|upper }}{% if review.user.last_name %}{{ review.user.last_name|first|upper }}{% endif %}
+                                                            {% else %}
+                                                                {{ review.user.username|slice:":1"|upper }}
+                                                            {% endif %}
+                                                        </strong>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex align-items-center gap-2 mb-2">
+                                                    <a href="{% url 'users:view_profile' review.user.id %}" 
+                                                       class="text-decoration-none fw-bold text-dark hover-text-primary">
+                                                        {% if review.user.first_name and review.user.last_name %}
+                                                            {{ review.user.first_name }} {{ review.user.last_name }}
+                                                        {% elif review.user.first_name %}
+                                                            {{ review.user.first_name }}
+                                                        {% else %}
+                                                            {{ review.user.username|slice:":4" }}***
+                                                        {% endif %}
+                                                    </a>
+                                                    <span class="text-muted">•</span>
+                                                    <small class="text-muted">{{ review.created_time|date:"M d, Y" }}</small>
+                                                </div>
+                                                <div class="star-rating mb-2">
+                                                    {% for i in "12345" %}
+                                                        {% if forloop.counter <= review.stars_given %}
+                                                            <i class="fas fa-star text-warning"></i>
+                                                        {% else %}
+                                                            <i class="far fa-star text-muted"></i>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    <span class="ms-2 fw-bold">{{ review.stars_given }}/5</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Like/Dislike buttons for authenticated users -->
+                                        {% if user.is_authenticated and user != review.user %}
+                                            <div class="review-vote-buttons">
+                                                <form method="post" action="{% url 'books:vote-review' book.id review.id %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="vote_type" value="like">
+                                                    <button type="submit" class="btn btn-sm {% if review.user_vote == 'like' %}btn-primary{% else %}btn-outline-primary{% endif %}" style="border-radius: 8px;">
+                                                        <i class="fas fa-thumbs-up"></i> {{ review.get_likes_count }}
+                                                    </button>
+                                                </form>
+                                                <form method="post" action="{% url 'books:vote-review' book.id review.id %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="vote_type" value="dislike">
+                                                    <button type="submit" class="btn btn-sm {% if review.user_vote == 'dislike' %}btn-danger{% else %}btn-outline-danger{% endif %}" style="border-radius: 8px;">
+                                                        <i class="fas fa-thumbs-down"></i> {{ review.get_dislikes_count }}
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        {% else %}
+                                            <div class="review-vote-badges">
+                                                <span class="badge bg-light text-dark">
+                                                    <i class="fas fa-thumbs-up text-success"></i> {{ review.get_likes_count }}
+                                                </span>
+                                                <span class="badge bg-light text-dark">
+                                                    <i class="fas fa-thumbs-down text-danger"></i> {{ review.get_dislikes_count }}
+                                                </span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="review-content">
+                                        <p class="text-dark mb-3 lh-lg" style="word-wrap: break-word; white-space: pre-wrap;">{{ review.comment }}</p>
+                                    </div>
+                                    
+                                    <!-- Comments/Replies Section -->
+                                    {% if user.is_authenticated or review.comments.all %}
+                                        <div class="comments-section border-top pt-3 mt-3">
+                                            <!-- Display existing comments -->
+                                            {% for comment in review.comments.all %}
+                                                {% if not comment.parent_comment %}
+                                                <div class="comment-item mb-3 p-3 bg-light rounded-3 border-start border-3 border-primary" style="border-radius: 10px !important;">
+                                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                                        {% if comment.user.profile.profile_picture %}
+                                                            <img src="{{ comment.user.profile.profile_picture.url }}" alt="{{ comment.user.username }}" class="rounded-circle border border-2 border-light" style="width: 28px; height: 28px; object-fit: cover;">
+                                                        {% else %}
+                                                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.7rem;">
+                                                                <strong>{{ comment.user.username|mask_email_username|first|upper }}</strong>
+                                                            </div>
+                                                        {% endif %}
+                                                        <div>
+                                                            <a href="{% url 'users:view_profile' comment.user.id %}" class="text-decoration-none fw-semibold text-dark small">{{ comment.user.username|mask_email_username }}</a>
+                                                            <div class="text-muted" style="font-size: 0.75rem;">{{ comment.created_at|date:"M d, Y" }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <p class="text-dark mb-2 small lh-sm" style="word-wrap: break-word; white-space: pre-wrap;">{{ comment.content }}</p>
+                                                    
+                                                    <!-- Display replies to this comment -->
+                                                    {% for reply in comment.get_replies %}
+                                                        <div class="reply-item ms-4 mt-2 p-2 bg-white rounded border-start border-2 border-secondary" style="border-radius: 8px !important;">
+                                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                                {% if reply.user.profile.profile_picture %}
+                                                                    <img src="{{ reply.user.profile.profile_picture.url }}" alt="{{ reply.user.username }}" class="rounded-circle border border-1 border-light" style="width: 24px; height: 24px; object-fit: cover;">
+                                                                {% else %}
+                                                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 0.6rem;">
+                                                                        <strong>{{ reply.user.username|mask_email_username|first|upper }}</strong>
+                                                                    </div>
+                                                                {% endif %}
+                                                                <div>
+                                                                    <a href="{% url 'users:view_profile' reply.user.id %}" class="text-decoration-none fw-semibold text-dark" style="font-size: 0.8rem;">{{ reply.user.username|mask_email_username }}</a>
+                                                                    <div class="text-muted" style="font-size: 0.7rem;">{{ reply.created_at|date:"M d, Y" }}</div>
+                                                                </div>
+                                                            </div>
+                                                            <p class="text-dark mb-0 small lh-sm" style="word-wrap: break-word; white-space: pre-wrap;">{{ reply.content }}</p>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                            
+                                            <!-- Add comment form for authenticated users -->
+                                            {% if user.is_authenticated %}
+                                                <div class="add-comment-section mt-3">
+                                                    <button class="btn btn-sm btn-outline-primary comment-btn" data-review-id="{{ review.id }}" onclick="toggleCommentForm({{ review.id }})" style="border-radius: 8px;">
+                                                        Izoh Qo'shish
+                                                    </button>
+                                                    
+                                                    <!-- Comment form (hidden by default) -->
+                                                    <div class="comment-form mt-3" id="comment-form-{{ review.id }}" style="display: none;">
+                                                        <form method="post" action="{% url 'books:add-comment' book.id review.id %}">
+                                                            {% csrf_token %}
+                                                            <div class="mb-2">
+                                                                <textarea name="content" class="form-control" rows="3" placeholder="Izoh yozing..." required style="border-radius: 10px;"></textarea>
+                                                            </div>
+                                                            <div class="d-flex gap-2">
+                                                                <button type="submit" class="btn btn-primary btn-sm" style="border-radius: 8px;">
+                                                                    Izoh Yuborish
+                                                                </button>
+                                                                <button type="button" class="btn btn-outline-secondary btn-sm cancel-comment" data-review-id="{{ review.id }}" onclick="cancelCommentForm({{ review.id }})" style="border-radius: 8px;">
+                                                                    Bekor Qilish
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Hali sharhlar yo'q. Birinchi sharh yozuvchisi bo'ling!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Personalized Recommendations -->
+        {% if personalized_recommendations %}
+        <div class="col-12">
+            <div class="card shadow-lg border-0 animate-fade-in-up" style="border-radius: 20px; background: linear-gradient(135deg, rgba(46, 90, 138, 0.05) 0%, rgba(46, 90, 138, 0.1) 100%);">
+                <div class="card-header bg-transparent border-bottom-0" style="border-radius: 20px 20px 0 0 !important; padding: 1.5rem;">
+                    <h4 class="mb-0 fw-bold text-primary">
+                        <i class="fas fa-magic me-2"></i>Siz Uchun Maxsus
+                    </h4>
+                    <p class="text-muted mb-0 small">O'qish tarixingiz asosida tavsiya etilgan kitoblar</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        {% for book in personalized_recommendations %}
+                            <div class="col-lg-3 col-md-4 col-sm-6">
+                                <a href="{% url 'books:detail' book.id %}" class="recommended-book-card text-decoration-none">
+                                    <div class="book-card-featured">
+                                        {% if book.cover_image %}
+                                            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-featured">
+                                        {% else %}
+                                            <div class="book-cover-placeholder-featured">
+                                                <i class="fas fa-book"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div class="book-info-featured mt-3">
+                                            <h6 class="book-title-featured">{{ book.title }}</h6>
+                                            {% if book.get_primary_author %}
+                                                <p class="book-author-featured">{{ book.get_primary_author.full_name }}</p>
+                                            {% endif %}
+                                            {% if book.genre %}
+                                                <span class="badge bg-primary">{{ book.genre.name }}</span>
+                                            {% endif %}
+                                            <div class="book-rating-featured mt-2">
+                                                <i class="fas fa-star text-warning"></i>
+                                                <span>{{ book.get_average_rating }}</span>
+                                                <span class="text-muted small">({{ book.get_total_reviews }} sharh)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Purchase Link Modal -->
+{% if user.is_authenticated %}
+<div class="modal fade" id="addPurchaseLinkModal" tabindex="-1" aria-labelledby="addPurchaseLinkModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 15px;">
+            <div class="modal-header bg-gradient-success text-white" style="border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title" id="addPurchaseLinkModalLabel">
+                    <i class="fas fa-plus-circle me-2"></i>Xarid Havolasi Qo'shish
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'books:add-purchase-link' book.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="seller_name" class="form-label fw-bold">
+                            <i class="fas fa-store me-2 text-success"></i>Sotuvchi Nomi
+                        </label>
+                        {{ purchase_link_form.seller_name }}
+                        <small class="text-muted d-block mt-1">
+                            Masalan: Amazon, Kitoblar.uz, Ozon.ru
+                        </small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="url" class="form-label fw-bold">
+                            <i class="fas fa-link me-2 text-success"></i>Xarid Havolasi
+                        </label>
+                        {{ purchase_link_form.url }}
+                        <small class="text-muted d-block mt-1">
+                            To'liq URL kiriting (https:// bilan boshlanishi kerak)
+                        </small>
+                    </div>
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <small>Boshqa foydalanuvchilarga yordam bering - kitobni qayerdan sotib olish mumkinligini ulashing</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Bekor qilish
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check me-2"></i>Qo'shish
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% block extra_js %}
+<script>
+// Fallback function for comment button clicks
+function toggleCommentForm(reviewId) {
+    const commentForm = document.getElementById(`comment-form-${reviewId}`);
+    
+    if (commentForm) {
+        const isHidden = commentForm.style.display === 'none' || commentForm.style.display === '';
+        commentForm.style.display = isHidden ? 'block' : 'none';
+        
+        if (commentForm.style.display === 'block') {
+            const textarea = commentForm.querySelector('textarea');
+            if (textarea) {
+                textarea.focus();
+            }
+        }
+    }
+}
+
+// Fallback function for cancel comment button clicks
+function cancelCommentForm(reviewId) {
+    const commentForm = document.getElementById(`comment-form-${reviewId}`);
+    
+    if (commentForm) {
+        commentForm.style.display = 'none';
+        const textarea = commentForm.querySelector('textarea');
+        if (textarea) {
+            textarea.value = '';
+        }
+    }
+}
+
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Bootstrap tooltips for purchase links
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Add a small delay to ensure all elements are rendered
+    setTimeout(function() {
+        // Handle comment button clicks
+        const commentButtons = document.querySelectorAll('.comment-btn');
+        
+        commentButtons.forEach((button) => {
+            button.addEventListener('click', handleCommentClick);
+        });
+        
+        function handleCommentClick(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const reviewId = this.getAttribute('data-review-id');
+            const commentForm = document.getElementById(`comment-form-${reviewId}`);
+            
+            if (commentForm) {
+                const isHidden = commentForm.style.display === 'none' || commentForm.style.display === '';
+                commentForm.style.display = isHidden ? 'block' : 'none';
+                if (commentForm.style.display === 'block') {
+                    const textarea = commentForm.querySelector('textarea');
+                    if (textarea) {
+                        textarea.focus();
+                    }
+                }
+            }
+        }
+    }, 100);
+    
+    // Add delay for other interactive elements too
+    setTimeout(function() {
+    // Handle cancel comment button clicks
+    document.querySelectorAll('.cancel-comment').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const reviewId = this.getAttribute('data-review-id');
+            const commentForm = document.getElementById(`comment-form-${reviewId}`);
+            
+            if (commentForm) {
+                commentForm.style.display = 'none';
+                const textarea = commentForm.querySelector('textarea');
+                if (textarea) {
+                    textarea.value = '';
+                }
+            }
+        });
+    });
+    
+    // Handle reply button clicks
+        const replyButtons = document.querySelectorAll('.reply-btn');
+        
+        replyButtons.forEach((button) => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+                e.stopPropagation();
+            const commentId = this.getAttribute('data-comment-id');
+            const replyForm = document.getElementById(`reply-form-${commentId}`);
+            
+            if (replyForm) {
+                const isHidden = replyForm.style.display === 'none' || replyForm.style.display === '';
+                replyForm.style.display = isHidden ? 'block' : 'none';
+                if (replyForm.style.display === 'block') {
+                    const textarea = replyForm.querySelector('textarea');
+                    if (textarea) {
+                        textarea.focus();
+                    }
+                }
+            }
+        });
+    });
+    
+    // Handle cancel reply button clicks
+    document.querySelectorAll('.cancel-reply').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const commentId = this.getAttribute('data-comment-id');
+            const replyForm = document.getElementById(`reply-form-${commentId}`);
+            
+            if (replyForm) {
+                replyForm.style.display = 'none';
+                const textarea = replyForm.querySelector('textarea');
+                if (textarea) {
+                    textarea.value = '';
+                }
+            }
+        });
+    });
+    }, 150);
+});
+
+// Toggle edit review form
+function toggleEditReview() {
+    const reviewDisplay = document.getElementById('user-review-display');
+    const editForm = document.getElementById('edit-review-form');
+    
+    if (reviewDisplay && editForm) {
+        if (editForm.style.display === 'none' || editForm.style.display === '') {
+            // Show edit form, hide display
+            reviewDisplay.style.display = 'none';
+            editForm.style.display = 'block';
+            // Scroll to form
+            editForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            // Show display, hide edit form
+            reviewDisplay.style.display = 'block';
+            editForm.style.display = 'none';
+            // Scroll to review
+            reviewDisplay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+}
+
+</script>
+{% endblock %}
+{% endblock %}
