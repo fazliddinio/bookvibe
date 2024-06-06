@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profilni Tahrirlash - BookVibe{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 1100px;">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="profile-edit-card card shadow-lg border-0" style="border-radius: 20px;">
+                <div class="card-header bg-transparent border-0 pt-5 pb-4">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div>
+                            <h2 class="mb-2">
+                                <i class="fas fa-user-edit text-primary me-2"></i>Profilni Tahrirlash
+                            </h2>
+                            <p class="text-muted mb-0">Shaxsiy ma'lumotlaringizni yangilang</p>
+                        </div>
+                        <a href="{% url 'users:profile' %}" class="btn btn-outline-secondary" style="border-radius: 10px;">
+                            <i class="fas fa-arrow-left me-2"></i>Profilga Qaytish
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body px-4 px-sm-5 pb-5">
+                    <form method="post" enctype="multipart/form-data" id="profileForm">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger alert-dismissible fade show animate-fade-in" role="alert" style="border-radius: 12px;">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <strong>Iltimos, quyidagi xatolarni to'g'rilang:</strong>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Profile Picture Section -->
+                        <div class="profile-picture-section mb-5">
+                            <h5 class="section-title mb-4">
+                                <i class="fas fa-camera text-primary me-2"></i>Profil Rasmi
+                            </h5>
+                            <div class="row align-items-center">
+                                <div class="col-md-3 text-center mb-3 mb-md-0">
+                                    <div class="current-profile-picture">
+                                        {% if user.userprofile.profile_picture %}
+                                            <img src="{{ user.userprofile.profile_picture.url }}" 
+                                                 alt="Joriy profil rasmi" 
+                                                 class="profile-preview rounded-circle shadow-sm"
+                                                 id="imagePreview"
+                                                 style="width: 120px; height: 120px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="profile-preview-placeholder rounded-circle shadow-sm d-flex align-items-center justify-content-center" id="imagePreview" style="width: 120px; height: 120px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);">
+                                                <i class="fas fa-user fa-3x text-white"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="custom-file-upload">
+                                        <label for="{{ form.profile_picture.id_for_label }}" class="file-upload-label btn btn-outline-primary" style="border-radius: 10px; padding: 0.75rem 1.5rem; cursor: pointer; border: 2px solid var(--primary-color);">
+                                            <i class="fas fa-cloud-upload-alt me-2"></i>
+                                            <span id="fileLabel">Yangi profil rasmini tanlang</span>
+                                        </label>
+                                        {{ form.profile_picture }}
+                                        {% if form.profile_picture.errors %}
+                                            <div class="invalid-feedback d-block mt-2">
+                                                {{ form.profile_picture.errors }}
+                                            </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted d-block mt-2">
+                                            <i class="fas fa-info-circle me-1"></i>Tavsiya etiladi: Kvadrat rasm, kamida 200x200px (JPG, PNG)
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <!-- Personal Information Section -->
+                        <div class="personal-info-section mb-5">
+                            <h5 class="section-title mb-4">
+                                <i class="fas fa-id-card text-primary me-2"></i>Shaxsiy Ma'lumotlar
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-user me-2 text-primary"></i>Ism
+                                    </label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.first_name.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-user me-2 text-primary"></i>Familiya
+                                    </label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.last_name.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <!-- Bio Section -->
+                        <div class="bio-section mb-5">
+                            <h5 class="section-title mb-4">
+                                <i class="fas fa-align-left text-primary me-2"></i>Siz Haqingizda
+                            </h5>
+                            <label for="{{ form.bio.id_for_label }}" class="form-label fw-semibold">Bio</label>
+                            {{ form.bio }}
+                            {% if form.bio.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.bio.errors }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted d-flex align-items-center mt-2">
+                                <i class="fas fa-lightbulb me-1"></i>O'qish qiziqishlaringiz va sevimli kitoblaringiz haqida yozing
+                            </small>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="form-actions d-flex gap-3 justify-content-end pt-4 border-top">
+                            <a href="{% url 'users:profile' %}" class="btn btn-outline-secondary btn-lg" style="border-radius: 12px; padding: 0.875rem 1.5rem;">
+                                <i class="fas fa-times me-2"></i>Bekor Qilish
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg shadow-sm" id="submitBtn" style="border-radius: 12px; padding: 0.875rem 1.5rem;">
+                                <span class="btn-text">
+                                    <i class="fas fa-save me-2"></i>O'zgarishlarni Saqlash
+                                </span>
+                                <span class="btn-loading" style="display: none;">
+                                    <span class="spinner-border spinner-border-sm me-2"></span>Saqlanmoqda...
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-preview {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+}
+
+.profile-preview-placeholder {
+    width: 120px;
+    height: 120px;
+}
+
+#{{ form.profile_picture.id_for_label }} {
+    display: none;
+}
+
+.file-upload-label {
+    transition: all 0.3s ease;
+}
+
+.file-upload-label:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(46, 90, 138, 0.2);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Image preview functionality
+    const fileInput = document.getElementById('{{ form.profile_picture.id_for_label }}');
+    const imagePreview = document.getElementById('imagePreview');
+    const fileLabel = document.getElementById('fileLabel');
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileLabel.textContent = file.name;
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (imagePreview.tagName === 'IMG') {
+                        imagePreview.src = e.target.result;
+                    } else {
+                        // Replace placeholder with actual image
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'profile-preview rounded-circle shadow-sm';
+                        img.alt = 'Profil ko\'rinishi';
+                        img.style.width = '120px';
+                        img.style.height = '120px';
+                        img.style.objectFit = 'cover';
+                        imagePreview.parentNode.replaceChild(img, imagePreview);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // Form submission with loading state
+    const form = document.getElementById('profileForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const btnLoading = submitBtn.querySelector('.btn-loading');
+    
+    if (form && submitBtn) {
+        form.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline-flex';
+        });
+    }
+    
+    // Character counter for bio
+    const bioField = document.getElementById('{{ form.bio.id_for_label }}');
+    if (bioField) {
+        const maxLength = bioField.getAttribute('maxlength');
+        if (maxLength) {
+            const counter = document.createElement('div');
+            counter.className = 'char-counter text-muted small mt-1 text-end';
+            bioField.parentNode.appendChild(counter);
+            
+            function updateCounter() {
+                const remaining = maxLength - bioField.value.length;
+                counter.textContent = `${bioField.value.length} / ${maxLength} belgi`;
+                if (remaining < 50) {
+                    counter.classList.add('text-warning');
+                } else {
+                    counter.classList.remove('text-warning');
+                }
+            }
+            
+            bioField.addEventListener('input', updateCounter);
+            updateCounter();
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ site_name }}ga xush kelibsiz!</title>
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            line-height: 1.6;
+            color: #594545;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #F0E68C;
+        }
+        .header {
+            background: linear-gradient(135deg, #6B4423 0%, #8B4513 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #F0E68C;
+            padding: 30px;
+            border-radius: 0 0 5px 5px;
+            color: #594545;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #6B4423 0%, #8B4513 100%);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #594545;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ site_name }}ga xush kelibsiz!</h1>
+    </div>
+    
+    <div class="content">
+        <h2>Salom {{ user.username }}!</h2>
+        
+        <p>Tabriklaymiz! Emailingiz muvaffaqiyatli tasdiqlandi va hisobingiz faollashtirildi.</p>
+        
+        <p>Endi siz:</p>
+        <ul>
+            <li>📚 Ajoyib kitoblarni ko'rib chiqishingiz va kashf qilishingiz</li>
+            <li>⭐ Sevimli kitoblaringizga baho berishingiz va sharh yozishingiz</li>
+            <li>📖 O'qish ro'yxatlaringizni yaratishingiz va boshqarishingiz</li>
+            <li>👥 Boshqa kitobxonlar bilan bog'lanishingiz</li>
+            <li>🔍 Shaxsiy kitob tavsiyalarini topishingiz mumkin</li>
+        </ul>
+        
+        <p>Kitob sayohatingizni boshlashga tayyormisiz?</p>
+        
+        <a href="{{ site_url }}/users/login/" class="button">{{ site_name }}ga kirish</a>
+        
+        <p>Agar savollaringiz bo'lsa yoki yordam kerak bo'lsa, bizning qo'llab-quvvatlash jamoamizga murojaat qiling.</p>
+        
+        <p>Yoqimli o'qishlar!</p>
+        <p><strong>{{ site_name }} jamoasi</strong></p>
+    </div>
+    
+    <div class="footer">
+        <p>Bu email {{ user.email }} manziliga yuborildi, chunki siz {{ site_name }}da ro'yxatdan o'tgansiz.</p>
+        <p>Agar siz hisob yaratmagan bo'lsangiz, iltimos bu emailni e'tiborsiz qoldiring.</p>
+    </div>
+</body>
+</html>

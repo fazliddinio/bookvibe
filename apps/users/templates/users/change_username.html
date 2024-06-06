@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Foydalanuvchi Nomini O'zgartirish - BookVibe{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1100px;">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg border-0" style="border-radius: 20px;">
+                <div class="card-header text-center bg-transparent border-0 pt-5 pb-4">
+                    <div class="auth-icon-wrapper mb-4">
+                        <div class="auth-icon mx-auto" style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(46, 90, 138, 0.3);">
+                            <i class="fas fa-user-edit" style="font-size: 2rem; color: white;"></i>
+                        </div>
+                    </div>
+                    <h3 class="mb-2" style="font-size: 1.75rem; font-weight: 700;">Foydalanuvchi Nomini O'zgartirish</h3>
+                    <p class="text-muted mb-0">Yangi foydalanuvchi nomini kiriting</p>
+                </div>
+                <div class="card-body px-4 px-sm-5 pb-5">
+                    <form method="post" id="usernameForm">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger" style="border-radius: 12px;">
+                                <h6><i class="fas fa-exclamation-circle me-2"></i>Iltimos, quyidagi xatolarni to'g'rilang:</h6>
+                                {{ form.errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.new_username.id_for_label }}" class="form-label fw-semibold">
+                                <i class="fas fa-user me-2 text-primary"></i>Yangi Foydalanuvchi Nomi
+                            </label>
+                            <input type="text" name="{{ form.new_username.name }}" class="form-control" id="{{ form.new_username.id_for_label }}" placeholder="Yangi foydalanuvchi nomini kiriting" required style="border-radius: 10px; padding: 0.75rem 1rem;">
+                            {% if form.new_username.help_text %}
+                                <div class="form-text">{{ form.new_username.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold">
+                                <i class="fas fa-lock me-2 text-primary"></i>Joriy Parol
+                            </label>
+                            <div class="input-group">
+                                <input type="password" name="{{ form.password.name }}" class="form-control" id="{{ form.password.id_for_label }}" placeholder="Joriy parolingizni kiriting" required style="border-radius: 10px 0 0 10px; padding: 0.75rem 1rem;">
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()" style="border-radius: 0 10px 10px 0;">
+                                    <i class="fas fa-eye" id="toggleIcon"></i>
+                                </button>
+                            </div>
+                            {% if form.password.help_text %}
+                                <div class="form-text">{{ form.password.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid mb-4">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" style="border-radius: 12px; padding: 0.875rem; font-weight: 600;">
+                                <span class="btn-text">
+                                    <i class="fas fa-check-circle me-2"></i>Foydalanuvchi Nomini O'zgartirish
+                                </span>
+                                <span class="btn-loading" style="display: none;">
+                                    <span class="spinner-border spinner-border-sm me-2"></span>O'zgartirilmoqda...
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center border-top pt-3">
+                        <p class="text-muted mb-0">
+                            <a href="{% url 'users:profile' %}" class="text-primary fw-semibold text-decoration-none">
+                                <i class="fas fa-arrow-left me-1"></i>Profilga Qaytish
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword() {
+    const passwordField = document.getElementById('{{ form.password.id_for_label }}');
+    const toggleIcon = document.getElementById('toggleIcon');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordField.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('usernameForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const btnLoading = submitBtn.querySelector('.btn-loading');
+    
+    if (form && submitBtn) {
+        form.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline-flex';
+        });
+    }
+});
+</script>
+{% endblock %}

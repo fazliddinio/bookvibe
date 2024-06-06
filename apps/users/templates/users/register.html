@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}Ro'yxatdan O'tish - BookVibe{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+            <div class="auth-card card shadow-lg border-0" style="border-radius: 20px;">
+                <div class="card-header text-center bg-transparent border-0 pt-5 pb-4">
+                    <div class="auth-icon-wrapper mb-4">
+                        <div class="auth-icon mx-auto"
+                            style="width: 90px; height: 90px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(46, 90, 138, 0.3);">
+                            <i class="fas fa-book-reader" style="font-size: 2.5rem; color: white;"></i>
+                        </div>
+                    </div>
+                    <h2 class="auth-title mb-3" style="font-size: 2rem; font-weight: 700;">BookVibe'ga Qo'shiling</h2>
+                    <p class="text-muted mb-0" style="font-size: 1.05rem;">Bugun o'qish sayohatingizni boshlang</p>
+                </div>
+                <div class="card-body px-4 px-sm-5 pb-5">
+                    <form method="post" id="registerForm" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show animate-fade-in" role="alert"
+                            style="border-radius: 12px;">
+                            {% for error in form.non_field_errors %}
+                            <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endif %}
+
+                        <div class="form-group mb-4">
+                            <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold mb-3"
+                                style="font-size: 0.95rem;">
+                                <i class="fas fa-envelope me-2 text-primary"></i>Email Manzil
+                            </label>
+                            <div class="input-with-icon">
+                                <input type="email" name="{{ form.email.name }}"
+                                    class="form-control form-control-lg {% if form.email.errors %}is-invalid{% endif %}"
+                                    id="{{ form.email.id_for_label }}" placeholder="sizning@email.com" required
+                                    autocomplete="email"
+                                    style="border-radius: 12px; padding: 0.875rem 1.25rem; border: 2px solid var(--border-color); font-size: 1rem;">
+                            </div>
+                            {% if form.email.errors %}
+                            <div class="invalid-feedback d-block animate-shake" style="margin-top: 0.5rem;">
+                                {% for error in form.email.errors %}
+                                <i class="fas fa-exclamation-triangle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Hidden username field that will be populated with email -->
+                        <input type="hidden" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}">
+
+                        <div class="form-group mb-4">
+                            <label for="{{ form.password1.id_for_label }}" class="form-label fw-semibold mb-3"
+                                style="font-size: 0.95rem;">
+                                <i class="fas fa-lock me-2 text-primary"></i>Parol
+                            </label>
+                            <div class="password-input-wrapper" style="position: relative;">
+                                <input type="password" name="{{ form.password1.name }}"
+                                    class="form-control form-control-lg {% if form.password1.errors %}is-invalid{% endif %}"
+                                    id="{{ form.password1.id_for_label }}"
+                                    placeholder="Parolni kiriting (kamida 6 belgi)" required autocomplete="new-password"
+                                    style="border-radius: 12px; padding: 0.875rem 3.5rem 0.875rem 1.25rem; border: 2px solid var(--border-color); font-size: 1rem;">
+                                <button type="button" class="password-toggle" id="togglePassword1"
+                                    style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.5rem; transition: color 0.2s;">
+                                    <i class="fas fa-eye" id="toggleIcon1"></i>
+                                </button>
+                            </div>
+                            {% if form.password1.errors %}
+                            <div class="invalid-feedback d-block animate-shake" style="margin-top: 0.5rem;">
+                                {% for error in form.password1.errors %}
+                                <i class="fas fa-exclamation-triangle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <small class="form-text text-muted d-flex align-items-center mt-2">
+                                <i class="fas fa-info-circle me-1"></i>Kamida 6 ta belgi talab qilinadi
+                            </small>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label for="{{ form.password2.id_for_label }}" class="form-label fw-semibold mb-3"
+                                style="font-size: 0.95rem;">
+                                <i class="fas fa-lock me-2 text-primary"></i>Parolni Tasdiqlang
+                            </label>
+                            <div class="password-input-wrapper" style="position: relative;">
+                                <input type="password" name="{{ form.password2.name }}"
+                                    class="form-control form-control-lg {% if form.password2.errors %}is-invalid{% endif %}"
+                                    id="{{ form.password2.id_for_label }}" placeholder="Parolni qayta kiriting" required
+                                    autocomplete="new-password"
+                                    style="border-radius: 12px; padding: 0.875rem 3.5rem 0.875rem 1.25rem; border: 2px solid var(--border-color); font-size: 1rem;">
+                                <button type="button" class="password-toggle" id="togglePassword2"
+                                    style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.5rem; transition: color 0.2s;">
+                                    <i class="fas fa-eye" id="toggleIcon2"></i>
+                                </button>
+                            </div>
+                            {% if form.password2.errors %}
+                            <div class="invalid-feedback d-block animate-shake" style="margin-top: 0.5rem;">
+                                {% for error in form.password2.errors %}
+                                <i class="fas fa-exclamation-triangle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid mb-4">
+                            <button type="submit" class="btn btn-primary btn-lg shadow-sm" id="submitBtn"
+                                style="border-radius: 12px; padding: 1rem; font-size: 1.05rem; font-weight: 600;">
+                                <span class="btn-text">
+                                    <i class="fas fa-user-plus me-2"></i>Hisob Yaratish
+                                </span>
+                                <span class="btn-loading" style="display: none;">
+                                    <span class="spinner-border spinner-border-sm me-2"></span>Yaratilmoqda...
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Social Login Divider -->
+                    <div class="divider-container my-4">
+                        <div class="divider-line"></div>
+                        <span class="divider-text"
+                            style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">YOKI</span>
+                        <div class="divider-line"></div>
+                    </div>
+
+                    <!-- Google Sign Up -->
+                    {% if ENABLE_GOOGLE_LOGIN %}
+                    {% load socialaccount %}
+                    <div class="d-grid mb-4">
+                        <a href="{% provider_login_url 'google' %}" class="btn btn-google btn-lg shadow-sm"
+                            style="border-radius: 12px; padding: 1rem; font-size: 1rem;">
+                            <svg class="google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px"
+                                height="24px">
+                                <path fill="#FFC107"
+                                    d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
+                                <path fill="#FF3D00"
+                                    d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
+                                <path fill="#4CAF50"
+                                    d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
+                                <path fill="#1976D2"
+                                    d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
+                            </svg>
+                            <span class="ms-2">Google Orqali Davom Etish</span>
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    <div class="text-center pt-3 border-top">
+                        <p class="text-muted mb-0">
+                            Hisobingiz bormi?
+                            <a href="{% url 'users:login' %}"
+                                class="text-primary fw-semibold text-decoration-none hover-underline">
+                                <i class="fas fa-sign-in-alt me-1"></i>Kirish
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Auto-populate username field with email
+        const emailField = document.querySelector('input[name="{{ form.email.name }}"]');
+        const usernameField = document.querySelector('input[name="{{ form.username.name }}"]');
+
+        if (emailField && usernameField) {
+            emailField.addEventListener('input', function () {
+                usernameField.value = this.value;
+            });
+        }
+
+        // Password toggle functionality for password1
+        const togglePassword1 = document.getElementById('togglePassword1');
+        const password1Input = document.getElementById('{{ form.password1.id_for_label }}');
+        const toggleIcon1 = document.getElementById('toggleIcon1');
+
+        if (togglePassword1 && password1Input && toggleIcon1) {
+            togglePassword1.addEventListener('click', function () {
+                const type = password1Input.getAttribute('type') === 'password' ? 'text' : 'password';
+                password1Input.setAttribute('type', type);
+                toggleIcon1.classList.toggle('fa-eye');
+                toggleIcon1.classList.toggle('fa-eye-slash');
+                this.style.color = type === 'text' ? 'var(--primary-color)' : 'var(--text-muted)';
+            });
+        }
+
+        // Password toggle functionality for password2
+        const togglePassword2 = document.getElementById('togglePassword2');
+        const password2Input = document.getElementById('{{ form.password2.id_for_label }}');
+        const toggleIcon2 = document.getElementById('toggleIcon2');
+
+        if (togglePassword2 && password2Input && toggleIcon2) {
+            togglePassword2.addEventListener('click', function () {
+                const type = password2Input.getAttribute('type') === 'password' ? 'text' : 'password';
+                password2Input.setAttribute('type', type);
+                toggleIcon2.classList.toggle('fa-eye');
+                toggleIcon2.classList.toggle('fa-eye-slash');
+                this.style.color = type === 'text' ? 'var(--primary-color)' : 'var(--text-muted)';
+            });
+        }
+
+        // Form submission with loading state
+        const form = document.getElementById('registerForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = submitBtn.querySelector('.btn-text');
+        const btnLoading = submitBtn.querySelector('.btn-loading');
+
+        if (form && submitBtn) {
+            form.addEventListener('submit', function () {
+                submitBtn.disabled = true;
+                btnText.style.display = 'none';
+                btnLoading.style.display = 'inline-flex';
+            });
+        }
+
+        // Auto-focus on email field
+        if (emailField) {
+            emailField.focus();
+        }
+    });
+</script>
+{% endblock %}

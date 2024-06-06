@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Email Tasdiqlash - {{ site_name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #f8f9fa;
+            padding: 30px;
+            border-radius: 0 0 5px 5px;
+        }
+        .verification-code {
+            background-color: #007bff;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            padding: 15px;
+            text-align: center;
+            border-radius: 5px;
+            margin: 20px 0;
+            letter-spacing: 3px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ site_name }}</h1>
+        <p>Email Tasdiqlash</p>
+    </div>
+    
+    <div class="content">
+        <h2>Salom {{ user.username }}!</h2>
+        
+        <p>{{ site_name }}da ro'yxatdan o'tganingiz uchun rahmat. Ro'yxatdan o'tishni yakunlash uchun quyidagi tasdiqlash kodidan foydalaning:</p>
+        
+        <div class="verification-code">
+            {{ verification_code }}
+        </div>
+        
+        <p><strong>Muhim:</strong></p>
+        <ul>
+            <li>Bu kod 10 daqiqadan keyin amal qilmay qoladi</li>
+            <li>Ushbu kodni tasdiqlash sahifasida kiriting</li>
+            <li>Agar siz bu kodni so'ramagan bo'lsangiz, iltimos bu emailni e'tiborsiz qoldiring</li>
+        </ul>
+        
+        <p>Agar savollaringiz bo'lsa, qo'llab-quvvatlash jamoamizga murojaat qiling.</p>
+        
+        <p>Hurmat bilan,<br>{{ site_name }} jamoasi</p>
+    </div>
+    
+    <div class="footer">
+        <p>Bu email {{ user.email }} manziliga yuborildi. Agar siz {{ site_name }}da hisob yaratmagan bo'lsangiz, iltimos bu emailni e'tiborsiz qoldiring.</p>
+    </div>
+</body>
+</html>

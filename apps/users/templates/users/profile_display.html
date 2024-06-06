@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load user_filters %}
+
+{% block title %}{{ user.username }}'ning Profili - BookVibe{% endblock %}
+
+{% block content %}
+<div class="container py-6" style="max-width: 1100px;">
+    <!-- Profile Header -->
+    <div class="row g-4">
+        <!-- Profile Card -->
+        <div class="col-lg-4 col-md-5">
+            <div class="card shadow-lg border-0 animate-fade-in-up" style="border-radius: 20px;">
+                <div class="card-body text-center p-5">
+                    <!-- Profile Picture -->
+                    <div class="profile-picture-wrapper mb-4">
+                        {% if user.profile.profile_picture %}
+                            <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}" 
+                                 class="rounded-circle border border-4 border-light shadow-lg" 
+                                 style="width: 140px; height: 140px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-gradient-primary text-white d-flex align-items-center justify-content-center mb-4 mx-auto border border-4 border-light shadow-lg" 
+                                 style="width: 140px; height: 140px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);">
+                                <span class="display-4 fw-bold">{{ user.username|mask_email_username|first|upper }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- User Info -->
+                    <h3 class="fw-bold mb-2">{{ user.username|mask_email_username }}</h3>
+                    <p class="text-muted mb-1">{{ user.email }}</p>
+                    
+                    {% if user.first_name or user.last_name %}
+                        <p class="text-muted mb-3">
+                            {% if user.first_name %}{{ user.first_name }}{% endif %}
+                            {% if user.last_name %} {{ user.last_name }}{% endif %}
+                        </p>
+                    {% endif %}
+                    
+                    {% if user.profile.bio %}
+                        <div class="bio-section p-3 bg-light rounded-3 mb-4" style="border-radius: 12px !important;">
+                            <p class="mb-0 fst-italic">{{ user.profile.bio }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="member-since mb-4">
+                        <small class="text-muted">
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            A'zo: {{ user.date_joined|date:"M Y" }}
+                        </small>
+                    </div>
+                    
+                    <!-- Stats -->
+                    <div class="profile-stats row g-3 mb-4">
+                        <div class="col-12">
+                            <div class="stat-box p-3 bg-light rounded-3" style="border-radius: 12px !important;">
+                                <div class="display-6 text-primary fw-bold mb-1">{{ total_reviews }}</div>
+                                <small class="text-muted text-uppercase">Yozilgan Sharhlar</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Edit Profile Button -->
+                    <a href="{% url 'users:edit_profile' %}" class="btn btn-primary w-100 btn-lg" style="border-radius: 12px; padding: 0.875rem; font-weight: 600;">
+                        <i class="fas fa-edit me-2"></i>Profilni Tahrirlash
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reviews Section -->
+        <div class="col-lg-8 col-md-7">
+            <div class="card shadow-lg border-0 animate-fade-in-up" style="border-radius: 20px;">
+                <div class="card-header bg-gradient-primary text-white" style="border-radius: 20px 20px 0 0 !important; padding: 1.5rem;">
+                    <h4 class="mb-0 fw-bold">
+                        <i class="fas fa-star me-2"></i>Mening Sharhlarim
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    {% if reviews %}
+                        <div class="reviews-list">
+                            {% for review in reviews %}
+                                <div class="review-item border-bottom pb-4 mb-4 hover-bg-light transition-all">
+                                    <div class="row g-3">
+                                        <div class="col-md-8">
+                                            <h5 class="mb-2">
+                                                <a href="{% url 'books:detail' review.book.id %}" 
+                                                   class="text-decoration-none text-dark hover-text-primary fw-bold">
+                                                    <i class="fas fa-book me-2 text-primary"></i>{{ review.book.title }}
+                                                </a>
+                                            </h5>
+                                            <p class="text-muted mb-3">
+                                                <i class="fas fa-user-pen me-2"></i>{{ review.book.get_primary_author }} tomonidan
+                                            </p>
+                                            <div class="star-rating mb-3">
+                                                {% for i in "12345" %}
+                                                    {% if forloop.counter <= review.stars_given %}
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star text-muted"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                <span class="ms-2 fw-bold">{{ review.stars_given }}/5</span>
+                                            </div>
+                                            {% if review.comment %}
+                                                <div class="review-comment p-3 bg-light rounded-3" style="border-radius: 12px !important;">
+                                                    <p class="mb-0">{{ review.comment }}</p>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4 text-end d-flex flex-column justify-content-between">
+                                            <div>
+                                                <small class="text-muted d-block mb-3">
+                                                    <i class="fas fa-clock me-1"></i>{{ review.created_time|date:"M d, Y" }}
+                                                </small>
+                                            </div>
+                                            <div class="action-buttons d-flex flex-column gap-2">
+                                                <a href="{% url 'books:detail' review.book.id %}#review-{{ review.id }}" 
+                                                   class="btn btn-outline-primary btn-sm" style="border-radius: 8px;">
+                                                    <i class="fas fa-eye me-1"></i>Ko'rish
+                                                </a>
+                                                <a href="{% url 'users:delete_review' review.id %}" 
+                                                   class="btn btn-outline-danger btn-sm" style="border-radius: 8px;"
+                                                   onclick="return confirm('Rostdan ham bu sharhni o\'chirmoqchimisiz?')">
+                                                    <i class="fas fa-trash me-1"></i>O'chirish
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state text-center py-5">
+                            <i class="fas fa-star-half-alt text-muted mb-4" style="font-size: 4rem;"></i>
+                            <h5 class="mb-3">Hali Sharhlar Yo'q</h5>
+                            <p class="text-muted mb-4">Siz hali hech qanday sharh yozmagansiz. Kitoblar haqida fikrlaringizni baham ko'ring!</p>
+                            <a href="{% url 'books:list' %}" class="btn btn-primary btn-lg px-5" style="border-radius: 12px;">
+                                <i class="fas fa-book-open me-2"></i>Kitoblarni Ko'rish
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
