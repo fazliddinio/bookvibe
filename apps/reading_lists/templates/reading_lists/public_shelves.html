@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load user_filters %}
+
+{% block title %}Ommaviy Javonlar - BookVibe{% endblock %}
+
+{% block content %}
+<div class="container mt-4" style="max-width: 1100px;">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">📚 Ommaviy Javonlar</h1>
+            <p class="text-muted mb-4">Boshqa foydalanuvchilarning o'qish ro'yxatlarini kashf eting</p>
+
+            {% if page_obj %}
+                <div class="row">
+                    {% for shelf in page_obj %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100" style="border-radius: 15px;">
+                                <div class="card-header d-flex justify-content-between align-items-center" style="border-radius: 15px 15px 0 0 !important; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%); color: white;">
+                                    <h5 class="mb-0">{{ shelf.name }}</h5>
+                                    <span class="badge bg-white text-primary">{{ shelf.get_book_count }} kitob</span>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-muted small">
+                                        <i class="fas fa-user text-primary"></i> {{ shelf.user.username|mask_email_username }}
+                                        • Yaratilgan: {{ shelf.created_at|date:"M d, Y" }}
+                                    </p>
+                                    
+                                    {% if shelf.books.all %}
+                                        <div class="mb-3">
+                                            <small class="text-muted">Namuna kitoblar:</small>
+                                            <div class="mt-2">
+                                                {% for book in shelf.books.all|slice:":3" %}
+                                                    <span class="badge bg-light text-dark me-1">{{ book.title|truncatechars:20 }}</span>
+                                                {% endfor %}
+                                                {% if shelf.get_book_count > 3 %}
+                                                    <span class="badge bg-secondary">+{{ shelf.get_book_count|add:"-3" }} yana</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted small">Hali kitoblar qo'shilmagan</p>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <a href="{% url 'reading_lists:shelf_detail' shelf.id %}" class="btn btn-outline-primary btn-sm" style="border-radius: 8px;">Javonni Ko'rish</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                    <nav aria-label="Ommaviy javonlar sahifalash">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Oldingi</a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Keyingi</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h4>Hali ommaviy javonlar yo'q</h4>
+                    <p class="text-muted">Birinchi bo'lib ommaviy o'qish ro'yxatini yarating!</p>
+                    <a href="{% url 'reading_lists:lists' %}" class="btn btn-primary" style="border-radius: 10px;">Javon Yaratish</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

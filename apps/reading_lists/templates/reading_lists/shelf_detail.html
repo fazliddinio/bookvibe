@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ shelf.name }} - BookVibe{% endblock %}
+
+{% block content %}
+<div class="container mt-4" style="max-width: 1100px;">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <h1>{{ shelf.name }}</h1>
+                <div>
+                    <span class="badge bg-primary">{{ shelf.get_book_count }} kitob</span>
+                    {% if shelf.is_public %}
+                        <span class="badge bg-success ms-2">Ommaviy</span>
+                    {% else %}
+                        <span class="badge bg-warning ms-2">Shaxsiy</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Books by Genre -->
+            {% if books_by_genre %}
+                <div class="card mb-4" style="border-radius: 15px;">
+                    <div class="card-header bg-gradient-primary text-white" style="border-radius: 15px 15px 0 0 !important;">
+                        <h5 class="mb-0">Janr Bo'yicha Kitoblar</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for genre, books in books_by_genre.items %}
+                            <div class="mb-3">
+                                <h6 class="text-primary">{{ genre }}</h6>
+                                <div class="row">
+                                    {% for book in books %}
+                                        <div class="col-lg-3 col-md-4 col-6 mb-2">
+                                            <div class="card h-100" style="border-radius: 10px;">
+                                                <div class="card-body">
+                                                    <h6 class="card-title">{{ book.title }}</h6>
+                                                    <p class="card-text text-muted small">
+                                                        Muallif: {{ book.get_primary_author }}
+                                                    </p>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            {% for i in "12345" %}
+                                                                {% if forloop.counter <= book.get_average_rating %}
+                                                                    <span class="text-warning">★</span>
+                                                                {% else %}
+                                                                    <span class="text-muted">☆</span>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                            <small class="text-muted ms-1">{{ book.get_average_rating|floatformat:1 }}</small>
+                                                        </div>
+                                                        <div class="btn-group btn-group-sm">
+                                                            <a href="{% url 'books:detail' book.id %}" class="btn btn-outline-primary" style="border-radius: 6px 0 0 6px;">Ko'rish</a>
+                                                            <form method="post" action="{% url 'reading_lists:remove_from_shelf' shelf.id book.id %}" class="d-inline" onsubmit="return confirm('Kitobni javondan o\'chirmoqchimisiz?')">
+                                                                {% csrf_token %}
+                                                                <button type="submit" class="btn btn-outline-danger" style="border-radius: 0 6px 6px 0;">O'chirish</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- All Books -->
+            <div class="card" style="border-radius: 15px;">
+                <div class="card-header bg-gradient-primary text-white" style="border-radius: 15px 15px 0 0 !important;">
+                    <h5 class="mb-0">Barcha Kitoblar ({{ page_obj.paginator.count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if page_obj %}
+                        <div class="row">
+                            {% for book in page_obj %}
+                                <div class="col-lg-4 col-md-6 mb-3">
+                                    <div class="card h-100" style="border-radius: 10px;">
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ book.title }}</h6>
+                                            <p class="card-text text-muted">
+                                                Muallif: {{ book.get_primary_author }} • {{ book.genre.name }}
+                                            </p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    {% for i in "12345" %}
+                                                        {% if forloop.counter <= book.get_average_rating %}
+                                                            <span class="text-warning">★</span>
+                                                        {% else %}
+                                                            <span class="text-muted">☆</span>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    <small class="text-muted ms-1">{{ book.get_average_rating|floatformat:1 }}</small>
+                                                </div>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{% url 'books:detail' book.id %}" class="btn btn-outline-primary" style="border-radius: 6px 0 0 6px;">Ko'rish</a>
+                                                    <form method="post" action="{% url 'reading_lists:remove_from_shelf' shelf.id book.id %}" class="d-inline" onsubmit="return confirm('Kitobni javondan o\'chirmoqchimisiz?')">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-outline-danger" style="border-radius: 0 6px 6px 0;">O'chirish</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if page_obj.has_other_pages %}
+                            <nav aria-label="Javon kitoblari sahifalash">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Oldingi</a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    {% for num in page_obj.paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Keyingi</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                            <h4>Javonda kitoblar yo'q</h4>
+                            <p class="text-muted">Boshlash uchun kitoblar qo'shing!</p>
+                            <a href="{% url 'books:list' %}" class="btn btn-primary" style="border-radius: 10px;">Kitoblarni Ko'rish</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

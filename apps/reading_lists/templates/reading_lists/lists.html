@@ -1,0 +1,383 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mening Kutubxonam - BookVibe{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 1100px;">
+    <!-- Sahifa Sarlavhasi -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="library-header">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <h1 class="display-5 fw-bold mb-2">
+                            <i class="fas fa-book-reader me-3 text-primary"></i>Mening Kutubxonam
+                        </h1>
+                        <p class="text-muted mb-0">O'qish sayohatingizni tartibga soling va kuzating</p>
+                    </div>
+                    {% if not require_login %}
+                    <div class="library-actions">
+                        <a href="{% url 'books:list' %}" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Kitoblarni Kashf Qilish
+                        </a>
+                        <a href="{% url 'books:add-book' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-plus me-2"></i>Kitob Qo'shish
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if require_login %}
+    <!-- Login Required Message -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-dismissible fade show" role="alert" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; padding: 2rem;">
+                <h4 class="alert-heading">
+                    <i class="fas fa-lock me-2"></i>
+                    Kirish Talab Qilinadi
+                </h4>
+                <p class="mb-3">Kutubxona funksiyalaridan foydalanish uchun avval tizimga kirishingiz kerak. Tizimga kirganingizdan so'ng siz:</p>
+                <ul class="mb-3">
+                    <li>Kitoblarni "O'qiyapman", "O'qimoqchiman" va "O'qilgan" bo'limlarga qo'shishingiz</li>
+                    <li>Shaxsiy o'qish ro'yxatingizni boshqarishingiz</li>
+                    <li>O'qish jarayonini kuzatishingiz mumkin</li>
+                </ul>
+                <hr style="border-color: rgba(255,255,255,0.3);">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{% url 'users:login' %}?next={% url 'reading_lists:lists' %}" class="btn btn-light">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Kirish
+                    </a>
+                    <a href="{% url 'users:register' %}" class="btn btn-outline-light">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Ro'yxatdan O'tish
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if not require_login %}
+    <!-- O'qish Statistikasi -->
+    <div class="row mb-5 g-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-card-icon bg-info">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <div class="stat-card-content">
+                    <h3 class="stat-card-value">{{ currently_reading|length }}</h3>
+                    <p class="stat-card-label">Hozir O'qiyapman</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-card-icon bg-warning">
+                    <i class="fas fa-bookmark"></i>
+                </div>
+                <div class="stat-card-content">
+                    <h3 class="stat-card-value">{{ want_to_read|length }}</h3>
+                    <p class="stat-card-label">O'qimoqchiman</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-card-icon bg-success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-card-content">
+                    <h3 class="stat-card-value">{{ already_read|length }}</h3>
+                    <p class="stat-card-label">O'qib Tugatdim</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- O'qish Kategoriyalari -->
+    <div class="reading-categories-grid">
+        <!-- Hozir O'qiyapman -->
+        <div class="reading-category-section">
+            <div class="category-header">
+                <h3 class="category-title">Hozir O'qiyapman</h3>
+                <span class="book-count">{{ currently_reading|length }} kitob</span>
+            </div>
+            <div class="books-grid">
+                {% if currently_reading %}
+                    {% for book in currently_reading|slice:":6" %}
+                        <div class="book-card">
+                            <div class="book-cover-container">
+                                {% if book.cover_image %}
+                                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
+                                {% else %}
+                                    <div class="book-cover-placeholder">
+                                        <i class="fas fa-book" style="font-size: 2rem; color: var(--text-muted);"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="book-info">
+                                <h4 class="book-title">{{ book.title|truncatechars:25 }}</h4>
+                                <p class="book-author">{{ book.get_primary_author|truncatechars:20 }}</p>
+                            </div>
+                            <div class="book-actions">
+                                <a href="{% url 'books:detail' book.id %}" class="action-btn view-btn">Batafsil</a>
+                                <a href="{% url 'reading_lists:remove_book_from_category' book.id 'Reading Now' %}" 
+                                   class="action-btn remove-btn"
+                                   onclick="return confirm('Bu kitobni o\'chirmoqchimisiz?')">O'chirish</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    {% if currently_reading|length > 6 %}
+                        <div class="show-more-container">
+                            <button class="show-more-btn" onclick="toggleBooks('reading-now', {{ currently_reading|length }})">
+                                Ko'proq Ko'rsatish ({{ currently_reading|length|add:"-6" }} ta)
+                            </button>
+                        </div>
+                        
+                        <div id="reading-now-hidden" class="hidden-books" style="display: none; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem;">
+                            {% for book in currently_reading|slice:"6:" %}
+                                <div class="book-card">
+                                    <div class="book-cover-container">
+                                        {% if book.cover_image %}
+                                            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
+                                        {% else %}
+                                            <div class="book-cover-placeholder">
+                                                <i class="fas fa-book" style="font-size: 2rem; color: var(--text-muted);"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="book-info">
+                                        <h4 class="book-title">{{ book.title|truncatechars:25 }}</h4>
+                                        <p class="book-author">{{ book.get_primary_author|truncatechars:20 }}</p>
+                                    </div>
+                                    <div class="book-actions">
+                                        <a href="{% url 'books:detail' book.id %}" class="action-btn view-btn">Batafsil</a>
+                                        <a href="{% url 'reading_lists:remove_book_from_category' book.id 'Reading Now' %}" 
+                                           class="action-btn remove-btn"
+                                           onclick="return confirm('Bu kitobni o\'chirmoqchimisiz?')">O'chirish</a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="empty-state">
+                        <p class="empty-text">Hozir o'qilayotgan kitob yo'q</p>
+                        <p class="empty-subtext">Kitob sahifasidan qo'shing</p>
+                        <a href="{% url 'books:list' %}" class="btn btn-sm btn-primary mt-2">
+                            <i class="fas fa-search me-1"></i>Kitoblarni Ko'rish
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- O'qimoqchiman -->
+        <div class="reading-category-section">
+            <div class="category-header">
+                <h3 class="category-title">O'qimoqchiman</h3>
+                <span class="book-count">{{ want_to_read|length }} kitob</span>
+            </div>
+            <div class="books-grid">
+                {% if want_to_read %}
+                    {% for book in want_to_read|slice:":6" %}
+                        <div class="book-card">
+                            <div class="book-cover-container">
+                                {% if book.cover_image %}
+                                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
+                                {% else %}
+                                    <div class="book-cover-placeholder">
+                                        <i class="fas fa-book" style="font-size: 2rem; color: var(--text-muted);"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="book-info">
+                                <h4 class="book-title">{{ book.title|truncatechars:25 }}</h4>
+                                <p class="book-author">{{ book.get_primary_author|truncatechars:20 }}</p>
+                            </div>
+                            <div class="book-actions">
+                                <a href="{% url 'books:detail' book.id %}" class="action-btn view-btn">Batafsil</a>
+                                <a href="{% url 'reading_lists:remove_book_from_category' book.id 'To Read' %}" 
+                                   class="action-btn remove-btn"
+                                   onclick="return confirm('Bu kitobni o\'chirmoqchimisiz?')">O'chirish</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    {% if want_to_read|length > 6 %}
+                        <div class="show-more-container">
+                            <button class="show-more-btn" onclick="toggleBooks('to-read', {{ want_to_read|length }})">
+                                Ko'proq Ko'rsatish ({{ want_to_read|length|add:"-6" }} ta)
+                            </button>
+                        </div>
+                        
+                        <div id="to-read-hidden" class="hidden-books" style="display: none; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem;">
+                            {% for book in want_to_read|slice:"6:" %}
+                                <div class="book-card">
+                                    <div class="book-cover-container">
+                                        {% if book.cover_image %}
+                                            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
+                                        {% else %}
+                                            <div class="book-cover-placeholder">
+                                                <i class="fas fa-book" style="font-size: 2rem; color: var(--text-muted);"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="book-info">
+                                        <h4 class="book-title">{{ book.title|truncatechars:25 }}</h4>
+                                        <p class="book-author">{{ book.get_primary_author|truncatechars:20 }}</p>
+                                    </div>
+                                    <div class="book-actions">
+                                        <a href="{% url 'books:detail' book.id %}" class="action-btn view-btn">Batafsil</a>
+                                        <a href="{% url 'reading_lists:remove_book_from_category' book.id 'To Read' %}" 
+                                           class="action-btn remove-btn"
+                                           onclick="return confirm('Bu kitobni o\'chirmoqchimisiz?')">O'chirish</a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="empty-state">
+                        <p class="empty-text">O'qimoqchi bo'lgan kitob yo'q</p>
+                        <p class="empty-subtext">Kitob sahifasidan qo'shing</p>
+                        <a href="{% url 'books:list' %}" class="btn btn-sm btn-primary mt-2">
+                            <i class="fas fa-search me-1"></i>Kitoblarni Ko'rish
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- O'qib Tugatdim -->
+        <div class="reading-category-section">
+            <div class="category-header">
+                <h3 class="category-title">O'qib Tugatdim</h3>
+                <span class="book-count">{{ already_read|length }} kitob</span>
+            </div>
+            <div class="books-grid">
+                {% if already_read %}
+                    {% for book in already_read|slice:":6" %}
+                        <div class="book-card">
+                            <div class="book-cover-container">
+                                {% if book.cover_image %}
+                                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
+                                {% else %}
+                                    <div class="book-cover-placeholder">
+                                        <i class="fas fa-book" style="font-size: 2rem; color: var(--text-muted);"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="book-info">
+                                <h4 class="book-title">{{ book.title|truncatechars:25 }}</h4>
+                                <p class="book-author">{{ book.get_primary_author|truncatechars:20 }}</p>
+                            </div>
+                            <div class="book-actions">
+                                <a href="{% url 'books:detail' book.id %}" class="action-btn view-btn">Batafsil</a>
+                                <a href="{% url 'reading_lists:remove_book_from_category' book.id 'Read' %}" 
+                                   class="action-btn remove-btn"
+                                   onclick="return confirm('Bu kitobni o\'chirmoqchimisiz?')">O'chirish</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    {% if already_read|length > 6 %}
+                        <div class="show-more-container">
+                            <button class="show-more-btn" onclick="toggleBooks('read', {{ already_read|length }})">
+                                Ko'proq Ko'rsatish ({{ already_read|length|add:"-6" }} ta)
+                            </button>
+                        </div>
+                        
+                        <div id="read-hidden" class="hidden-books" style="display: none; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem;">
+                            {% for book in already_read|slice:"6:" %}
+                                <div class="book-card">
+                                    <div class="book-cover-container">
+                                        {% if book.cover_image %}
+                                            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover">
+                                        {% else %}
+                                            <div class="book-cover-placeholder">
+                                                <i class="fas fa-book" style="font-size: 2rem; color: var(--text-muted);"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="book-info">
+                                        <h4 class="book-title">{{ book.title|truncatechars:25 }}</h4>
+                                        <p class="book-author">{{ book.get_primary_author|truncatechars:20 }}</p>
+                                    </div>
+                                    <div class="book-actions">
+                                        <a href="{% url 'books:detail' book.id %}" class="action-btn view-btn">Batafsil</a>
+                                        <a href="{% url 'reading_lists:remove_book_from_category' book.id 'Read' %}" 
+                                           class="action-btn remove-btn"
+                                           onclick="return confirm('Bu kitobni o\'chirmoqchimisiz?')">O'chirish</a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="empty-state">
+                        <p class="empty-text">O'qib tugatilgan kitob yo'q</p>
+                        <p class="empty-subtext">Kitob sahifasidan qo'shing</p>
+                        <a href="{% url 'books:list' %}" class="btn btn-sm btn-primary mt-2">
+                            <i class="fas fa-search me-1"></i>Kitoblarni Ko'rish
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tezkor Takliflar -->
+    {% if want_to_read or currently_reading %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card" style="background: linear-gradient(135deg, rgba(46, 90, 138, 0.05) 0%, rgba(240, 248, 255, 0.1) 100%); border: 1px solid var(--border-color);">
+                <div class="card-body text-center py-4">
+                    <h4 class="mb-3"><i class="fas fa-lightbulb me-2 text-primary"></i>O'qish Bo'yicha Takliflar</h4>
+                    <p class="text-muted mb-4">Kutubxonangizni to'ldiring va o'qish maqsadlaringizga erishing!</p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        {% if currently_reading %}
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-book-open me-2"></i>
+                            Sizda {{ currently_reading|length }} ta kitob o'qilmoqda. Davom eting!
+                        </div>
+                        {% endif %}
+                        {% if want_to_read %}
+                        <div class="alert alert-warning mb-0">
+                            <i class="fas fa-bookmark me-2"></i>
+                            O'qimoqchi bo'lgan {{ want_to_read|length }} ta kitob kutmoqda.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleBooks(categoryId, totalBooks) {
+    const hiddenDiv = document.getElementById(categoryId + '-hidden');
+    const button = event.target;
+    
+    if (hiddenDiv.style.display === 'none' || hiddenDiv.style.display === '') {
+        hiddenDiv.style.display = 'grid';
+        button.textContent = 'Kamroq Ko\'rsatish';
+    } else {
+        hiddenDiv.style.display = 'none';
+        button.textContent = 'Ko\'proq Ko\'rsatish (' + (totalBooks - 6) + ' ta)';
+    }
+}
+</script>
+{% endblock %}
