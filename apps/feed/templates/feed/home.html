@@ -1,0 +1,427 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load uzbek_filters %}
+
+{% block title %}Asosiy - BookVibe{% endblock %}
+
+{% block content %}
+<div class="container mt-4" style="max-width: 1100px;">
+    <!-- Hero Section -->
+    <div class="feed-hero mb-5">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <div class="d-flex align-items-center gap-3">
+                    {% if user.is_authenticated %}
+                        <div class="hero-avatar">
+                            {% if user.profile.profile_picture %}
+                                <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}" class="hero-avatar-img">
+                            {% else %}
+                                <div class="hero-avatar-placeholder">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h2 class="mb-1 fw-bold">
+                                Xush Kelibsiz, 
+                                {% if user.first_name and user.last_name %}
+                                    {{ user.first_name }} {{ user.last_name }}
+                                {% elif user.first_name %}
+                                    {{ user.first_name }}
+                                {% else %}
+                                    {{ user.username|slice:":4" }}***
+                                {% endif %}!
+                            </h2>
+                            <p class="text-muted mb-0">O'quvchilar jamiyatida so'nggi yangiliklar</p>
+                        </div>
+                    {% else %}
+                        <div>
+                            <h1 class="display-5 fw-bold mb-2">
+                                <i class="fas fa-home text-primary me-2"></i>
+                                BookVibe'ga Xush Kelibsiz!
+                            </h1>
+                            <p class="lead text-muted">O'quvchilar jamiyatida so'nggi yangiliklar</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Feed -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h4 class="mb-0 fw-bold">
+                        <i class="fas fa-rss me-2 text-primary"></i>Yangiliklar
+                    </h4>
+                </div>
+                <div class="card-body p-0">
+                    {% if page_obj %}
+                        <div class="activity-feed">
+                            {% for activity in page_obj %}
+                                <div class="activity-item p-4 border-bottom">
+                                    <div class="d-flex gap-3">
+                                        <a href="{% url 'users:view_profile' activity.user.id %}" class="activity-avatar text-decoration-none">
+                                            <div class="avatar-circle">
+                                                {{ activity.user.username|first|upper }}
+                                            </div>
+                                        </a>
+                                        <div class="flex-grow-1">
+                                            <div class="activity-header mb-2">
+                                                <a href="{% url 'users:view_profile' activity.user.id %}" class="activity-user-link text-decoration-none">
+                                                    <strong class="activity-user">
+                                                        {% if activity.user.first_name and activity.user.last_name %}
+                                                            {{ activity.user.first_name }} {{ activity.user.last_name }}
+                                                        {% elif activity.user.first_name %}
+                                                            {{ activity.user.first_name }}
+                                                        {% else %}
+                                                            {{ activity.user.username|slice:":4" }}***
+                                                        {% endif %}
+                                                    </strong>
+                                                </a>
+                                                <span class="activity-action">
+                                                    {% if activity.activity_type == 'review' %}
+                                                        <i class="fas fa-star text-warning"></i> sharh qoldirdi
+                                                    {% elif activity.activity_type == 'book_add' %}
+                                                        <i class="fas fa-plus-circle text-success"></i> kitob qo'shdi
+                                                    {% elif activity.activity_type == 'shelf_add' %}
+                                                        <i class="fas fa-bookmark text-info"></i> javonga qo'shdi
+                                                    {% elif activity.activity_type == 'reading_start' %}
+                                                        <i class="fas fa-book-reader text-primary"></i> o'qishni boshladi
+                                                    {% elif activity.activity_type == 'reading_complete' %}
+                                                        <i class="fas fa-check-circle text-success"></i> o'qishni tugatdi
+                                                    {% endif %}
+                                                </span>
+                                                <span class="activity-time text-muted small">
+                                                    {{ activity.created_at|timesince_uz }} oldin
+                                                </span>
+                                            </div>
+                                            {% if activity.book %}
+                                                <a href="{% url 'books:detail' activity.book.id %}" class="activity-book-link">
+                                                    <div class="activity-book-card">
+                                                        {% if activity.book.cover_image %}
+                                                            <img src="{{ activity.book.cover_image.url }}" alt="{{ activity.book.title }}" class="activity-book-cover">
+                                                        {% else %}
+                                                            <div class="activity-book-cover-placeholder">
+                                                                <i class="fas fa-book"></i>
+                                                            </div>
+                                                        {% endif %}
+                                                        <div class="activity-book-info">
+                                                            <div class="fw-semibold">{{ activity.book.title }}</div>
+                                                            {% if activity.book.get_primary_author %}
+                                                                <div class="text-muted small">{{ activity.book.get_primary_author.full_name }}</div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if page_obj.has_other_pages %}
+                            <div class="pagination-container p-4">
+                                <nav aria-label="Activity pagination">
+                                    <ul class="pagination justify-content-center mb-0">
+                                        {% if page_obj.has_previous %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                                    <i class="fas fa-chevron-left"></i>
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                        
+                                        {% for num in page_obj.paginator.page_range %}
+                                            {% if page_obj.number == num %}
+                                                <li class="page-item active">
+                                                    <span class="page-link">{{ num }}</span>
+                                                </li>
+                                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                        
+                                        {% if page_obj.has_next %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                                    <i class="fas fa-chevron-right"></i>
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </nav>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-feed p-5 text-center">
+                            <i class="fas fa-inbox text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
+                            <h5 class="mt-3 text-muted">Hali faollik yo'q</h5>
+                            <p class="text-muted">Birinchi bo'lib kitob qo'shing yoki sharh yozing!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Trending Books -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-fire text-danger me-2"></i>Mashhur Kitoblar
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if trending_books %}
+                        <div class="trending-books-list">
+                            {% for book in trending_books %}
+                                <a href="{% url 'books:detail' book.id %}" class="trending-book-item d-flex gap-3 mb-3 text-decoration-none">
+                                    {% if book.cover_image %}
+                                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="trending-book-cover">
+                                    {% else %}
+                                        <div class="trending-book-cover-placeholder">
+                                            <i class="fas fa-book"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold text-dark">{{ book.title|truncatechars:40 }}</div>
+                                        {% if book.get_primary_author %}
+                                            <div class="text-muted small">{{ book.get_primary_author.full_name }}</div>
+                                        {% endif %}
+                                        <div class="text-muted small">
+                                            <i class="fas fa-chart-line text-primary"></i> {{ book.activity_count }} faollik
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">Hozircha mashhur kitoblar yo'q</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            {% if user.is_authenticated %}
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="fas fa-bolt text-warning me-2"></i>Tezkor Harakatlar
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'books:add-book' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-plus-circle me-2"></i>Kitob Qo'shish
+                            </a>
+                            <a href="{% url 'books:list' %}" class="btn btn-outline-success">
+                                <i class="fas fa-search me-2"></i>Kitob Qidirish
+                            </a>
+                            <a href="{% url 'reading_lists:lists' %}" class="btn btn-outline-info">
+                                <i class="fas fa-bookmark me-2"></i>Mening Kutubxonam
+                            </a>
+                            <a href="{% url 'habits:tracker' %}" class="btn btn-outline-warning">
+                                <i class="fas fa-chart-line me-2"></i>Faollik Kuzatish
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card border-0 shadow-sm bg-gradient-primary text-white">
+                    <div class="card-body text-center p-4">
+                        <i class="fas fa-user-plus mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="fw-bold mb-3">BookVibe'ga Qo'shiling!</h5>
+                        <p class="mb-3">O'qish faoliyatingizni kuzating, kitoblarni baham ko'ring va boshqalar bilan muloqot qiling.</p>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'users:register' %}" class="btn btn-light">Ro'yxatdan O'tish</a>
+                            <a href="{% url 'users:login' %}" class="btn btn-outline-light">Kirish</a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.feed-hero {
+    background: linear-gradient(135deg, rgba(46, 90, 138, 0.05) 0%, rgba(46, 90, 138, 0.1) 100%);
+    padding: 2rem;
+    border-radius: 20px;
+    border: 1px solid rgba(46, 90, 138, 0.1);
+}
+
+.stat-badge {
+    background: white;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    display: inline-flex;
+    align-items: center;
+}
+
+.activity-feed {
+    max-height: none;
+}
+
+.activity-item {
+    transition: background-color 0.2s ease;
+}
+
+.activity-item:hover {
+    background-color: #f8f9fa;
+}
+
+.activity-item:last-child {
+    border-bottom: none !important;
+}
+
+.activity-avatar {
+    transition: transform 0.2s ease;
+}
+
+.activity-avatar:hover {
+    transform: scale(1.05);
+}
+
+.activity-avatar .avatar-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+.activity-user {
+    color: var(--primary-color);
+}
+
+.activity-user-link {
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.activity-user-link:hover .activity-user {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.activity-user-link:hover {
+    transform: translateX(2px);
+}
+
+.activity-action {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.activity-time {
+    font-size: 0.85rem;
+}
+
+.activity-book-link {
+    text-decoration: none;
+}
+
+.activity-book-card {
+    display: flex;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin-top: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.activity-book-card:hover {
+    background: #e9ecef;
+    transform: translateX(4px);
+}
+
+.activity-book-cover {
+    width: 60px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.activity-book-cover-placeholder {
+    width: 60px;
+    height: 80px;
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+    font-size: 1.5rem;
+}
+
+.trending-book-cover {
+    width: 50px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.trending-book-cover-placeholder {
+    width: 50px;
+    height: 70px;
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+}
+
+.trending-book-item {
+    padding: 0.75rem;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.trending-book-item:hover {
+    background: #f8f9fa;
+    transform: translateX(4px);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%) !important;
+}
+
+@media (max-width: 768px) {
+    .feed-hero {
+        padding: 1.5rem;
+    }
+    
+    .stat-badge {
+        font-size: 0.85rem;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .activity-avatar .avatar-circle {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
