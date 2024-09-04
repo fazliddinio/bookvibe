@@ -1,0 +1,493 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Faollik Kuzatish - BookVibe{% endblock %}
+
+{% block extra_css %}
+<style>
+.habit-tracker-container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card-modern {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 1px solid rgba(46, 90, 138, 0.1);
+    transition: all 0.3s ease;
+}
+
+.stat-card-modern:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.stat-icon-modern {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.stat-icon-modern.fire {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%);
+    color: white;
+}
+
+.stat-icon-modern.calendar {
+    background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+    color: white;
+}
+
+.stat-icon-modern.book-open {
+    background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+    color: white;
+}
+
+.stat-icon-modern.clock {
+    background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+    color: white;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-color);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.heatmap-container {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 1px solid rgba(46, 90, 138, 0.1);
+    margin-bottom: 2rem;
+}
+
+.heatmap-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.heatmap-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin: 0;
+}
+
+/* GitHub-style heatmap */
+.heatmap-wrapper {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+}
+
+.heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(53, 1fr);
+    gap: 3px;
+    min-width: 800px;
+}
+
+.heatmap-cell {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: #ebedf0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.heatmap-cell:hover {
+    transform: scale(1.5);
+    box-shadow: 0 0 8px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+
+.heatmap-cell.level-0 {
+    background: #ebedf0;
+}
+
+.heatmap-cell.level-1 {
+    background: #9be9a8;
+}
+
+.heatmap-cell.level-2 {
+    background: #40c463;
+}
+
+.heatmap-cell.level-3 {
+    background: #30a14e;
+}
+
+.heatmap-cell.level-4 {
+    background: #216e39;
+}
+
+.today-toggle-card {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1e3a5f 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    color: white;
+    box-shadow: 0 4px 16px rgba(46, 90, 138, 0.3);
+    margin-bottom: 2rem;
+}
+
+.toggle-button {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.toggle-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.toggle-button.active {
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--primary-color);
+}
+
+.month-labels {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 4px;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    min-width: 800px;
+}
+
+.legend {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.legend-item {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+@media (max-width: 768px) {
+    .heatmap-grid {
+        grid-template-columns: repeat(26, 1fr);
+        gap: 3px;
+        min-width: 400px;
+    }
+    
+    .month-labels {
+        min-width: 400px;
+        font-size: 0.65rem;
+    }
+    
+    .heatmap-cell {
+        border-radius: 2px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .stat-card-modern {
+        padding: 1rem;
+    }
+    
+    .stat-icon-modern {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .today-toggle-card {
+        padding: 1.5rem;
+    }
+    
+    .toggle-button {
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+    }
+}
+
+.tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    pointer-events: none;
+    z-index: 1000;
+    white-space: nowrap;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="habit-tracker-container container mt-4">
+    <!-- Header -->
+    <div class="mb-4">
+        <h1 class="display-5 fw-bold mb-2">
+            <i class="fas fa-chart-line text-primary me-2"></i>
+            Faollik
+        </h1>
+        <p class="lead text-muted">Har kuni o'qish faolligingizni kuzating va natijalaringizni ko'ring</p>
+    </div>
+
+    {% if require_login %}
+    <!-- Login Required Message -->
+    <div class="alert alert-info alert-dismissible fade show" role="alert" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px;">
+        <h4 class="alert-heading">
+            <i class="fas fa-lock me-2"></i>
+            Kirish Talab Qilinadi
+        </h4>
+        <p class="mb-3">Faollik kuzatish funksiyasidan foydalanish uchun avval tizimga kirishingiz kerak.</p>
+        <hr style="border-color: rgba(255,255,255,0.3);">
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'users:login' %}?next={% url 'habits:tracker' %}" class="btn btn-light">
+                <i class="fas fa-sign-in-alt me-2"></i>
+                Kirish
+            </a>
+            <a href="{% url 'users:register' %}" class="btn btn-outline-light">
+                <i class="fas fa-user-plus me-2"></i>
+                Ro'yxatdan O'tish
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not require_login %}
+    <!-- Today's Toggle -->
+    <div class="today-toggle-card">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="fw-bold mb-2">Bugun o'qidingizmi?</h3>
+                <p class="mb-0 opacity-75">Har kuni o'qish odatini shakllantiring va natijalaringizni kuzating</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <form method="POST" action="{% url 'habits:tracker' %}" id="toggleForm">
+                    {% csrf_token %}
+                    <button type="submit" class="toggle-button {% if today_habit.completed %}active{% endif %}">
+                        <i class="fas fa-{% if today_habit.completed %}check{% else %}times{% endif %}"></i>
+                    </button>
+                </form>
+                <small class="d-block mt-2 opacity-75">
+                    {% if today_habit.completed %}
+                        ✓ Belgilangan
+                    {% else %}
+                        Belgilash uchun bosing
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card-modern">
+            <div class="stat-icon-modern fire">
+                <i class="fas fa-fire"></i>
+            </div>
+            <div class="stat-value">{{ current_streak }}</div>
+            <div class="stat-label">Kun Ketma-ket</div>
+        </div>
+
+        <div class="stat-card-modern">
+            <div class="stat-icon-modern calendar">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-value">{{ total_days }}</div>
+            <div class="stat-label">Jami Kunlar</div>
+        </div>
+
+        <div class="stat-card-modern">
+            <div class="stat-icon-modern book-open">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <div class="stat-value">{{ total_pages }}</div>
+            <div class="stat-label">Sahifalar</div>
+        </div>
+
+        <div class="stat-card-modern">
+            <div class="stat-icon-modern clock">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-value">{{ total_minutes }}</div>
+            <div class="stat-label">Daqiqalar</div>
+        </div>
+    </div>
+
+    <!-- Heatmap -->
+    <div class="heatmap-container">
+        <div class="heatmap-header">
+            <h4 class="heatmap-title">
+                <i class="fas fa-calendar-alt me-2"></i>
+                Yillik Faollik
+            </h4>
+        </div>
+        <p class="text-muted mb-3">GitHub uslubida faollik xaritasi - har bir kvadrat bir kunni ifodalaydi</p>
+        
+        <div class="heatmap-wrapper">
+            <div class="month-labels" id="monthLabels"></div>
+            <div class="heatmap-grid" id="heatmapGrid"></div>
+        </div>
+
+        <div class="legend">
+            <span>Kamroq</span>
+            <div class="legend-item level-0"></div>
+            <div class="legend-item level-1"></div>
+            <div class="legend-item level-2"></div>
+            <div class="legend-item level-3"></div>
+            <div class="legend-item level-4"></div>
+            <span>Ko'proq</span>
+        </div>
+    </div>
+
+    <!-- Quick Tips -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">
+                <i class="fas fa-lightbulb text-warning me-2"></i>
+                Maslahatlar
+            </h5>
+            <ul class="list-unstyled mb-0">
+                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Har kuni bir xil vaqtda o'qishga harakat qiling</li>
+                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Kichik maqsadlar qo'ying va ularni bajarishga intiling</li>
+                <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> O'qish natijalaringizni do'stlaringiz bilan baham ko'ring</li>
+                <li class="mb-0"><i class="fas fa-check-circle text-success me-2"></i> Turli janrdagi kitoblarni o'qib ko'ring</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+// Parse heatmap data from Django
+const heatmapData = JSON.parse('{{ heatmap_data|escapejs }}');
+const today = new Date('{{ today|date:"Y-m-d" }}');
+
+// Generate GitHub-style heatmap
+function generateHeatmap() {
+    const grid = document.getElementById('heatmapGrid');
+    const monthLabels = document.getElementById('monthLabels');
+    
+    // Calculate date range (365 days ago to today)
+    const endDate = new Date(today);
+    const startDate = new Date(today);
+    startDate.setDate(startDate.getDate() - 364);
+    
+    // Generate month labels
+    const months = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
+    let currentMonth = startDate.getMonth();
+    for (let i = 0; i < 12; i++) {
+        const label = document.createElement('div');
+        label.textContent = months[(currentMonth + i) % 12];
+        monthLabels.appendChild(label);
+    }
+    
+    // Generate cells for each day
+    const millisecondsPerDay = 24 * 60 * 60 * 1000;
+    const totalDays = Math.round((endDate - startDate) / millisecondsPerDay) + 1;
+    
+    for (let i = 0; i < totalDays; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        const cell = document.createElement('div');
+        cell.className = 'heatmap-cell';
+        cell.dataset.date = dateStr;
+        
+        // Check if we have data for this day
+        const data = heatmapData[dateStr];
+        let hasData = data && data.completed;
+        let pages = data ? (data.pages || 0) : 0;
+        let minutes = data ? (data.minutes || 0) : 0;
+        
+        if (hasData) {
+            // Calculate level based on pages or minutes
+            let level = 1;
+            if (pages > 50 || minutes > 120) level = 4;
+            else if (pages > 30 || minutes > 60) level = 3;
+            else if (pages > 10 || minutes > 30) level = 2;
+            
+            cell.classList.add(`level-${level}`);
+        } else {
+            cell.classList.add('level-0');
+        }
+        
+        // Add hover tooltip
+        cell.addEventListener('mouseenter', function(e) {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            
+            if (hasData) {
+                tooltip.textContent = `${dateStr}: ${pages} sahifa, ${minutes} daqiqa`;
+            } else {
+                tooltip.textContent = `${dateStr}: Faollik yo'q`;
+            }
+            
+            tooltip.style.left = e.pageX + 'px';
+            tooltip.style.top = (e.pageY - 40) + 'px';
+            document.body.appendChild(tooltip);
+            
+            cell._tooltip = tooltip;
+        });
+        
+        cell.addEventListener('mouseleave', function() {
+            if (cell._tooltip) {
+                cell._tooltip.remove();
+                delete cell._tooltip;
+            }
+        });
+        
+        grid.appendChild(cell);
+    }
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', generateHeatmap);
+</script>
+{% endblock %}
