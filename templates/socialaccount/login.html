@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Google Orqali Kirish - BookVibe{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+            <div class="auth-card card shadow-lg border-0">
+                <div class="card-header text-center bg-transparent border-0 pt-5 pb-4">
+                    <div class="auth-icon-wrapper mb-4">
+                        <div class="auth-icon mx-auto">
+                            <i class="fab fa-google"></i>
+                        </div>
+                    </div>
+                    <h2 class="auth-title mb-2">Google Orqali Davom Etish</h2>
+                    <p class="text-muted mb-0" style="color: rgba(255,255,255,0.9) !important;">Google yordamida tizimga kiryapsiz</p>
+                </div>
+                <div class="card-body px-4 px-sm-5 pb-5">
+                    
+                    {% if process == "connect" %}
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-link me-2"></i>
+                        Google hisobingizni BookVibe profilingiz bilan bog'lang
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="text-center mb-4">
+                            <div class="google-account-info p-4 rounded-3 bg-light">
+                                <i class="fab fa-google fa-3x text-primary mb-3"></i>
+                                <p class="mb-0 text-muted">
+                                    Davom etish orqali siz Google hisobingiz bilan BookVibe'ga kirishingiz mumkin bo'ladi
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                                <i class="fas fa-check-circle me-2"></i>Google Orqali Davom Etish
+                            </button>
+                        </div>
+
+                        <div class="d-grid mb-4">
+                            <a href="{% url 'users:login' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Kirish Sahifasiga Qaytish
+                            </a>
+                        </div>
+
+                        <div class="text-center">
+                            <small class="text-muted">
+                                <i class="fas fa-shield-alt me-1"></i>
+                                Maxfiyligingiz himoyalangan. Biz faqat email va profil ma'lumotlaringizga kiramiz.
+                            </small>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.auth-card .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white;
+}
+
+.auth-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.auth-title {
+    font-weight: 700;
+    font-size: 1.75rem;
+    color: white;
+}
+
+.google-account-info {
+    border: 2px dashed #e2e8f0;
+}
+</style>
+{% endblock %}
+

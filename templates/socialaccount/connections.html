@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ijtimoiy Hisoblar - BookVibe{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-gradient text-white py-4">
+                    <h2 class="mb-0">
+                        <i class="fas fa-link me-2"></i>Bog'langan Hisoblar
+                    </h2>
+                    <p class="mb-0 mt-2 opacity-75">
+                        Ijtimoiy tarmoq hisoblaringizni boshqaring
+                    </p>
+                </div>
+                <div class="card-body p-4">
+                    
+                    {% if form.accounts %}
+                    <form method="post" action="{% url 'socialaccount_connections' %}">
+                        {% csrf_token %}
+                        
+                        <div class="list-group">
+                            {% for base_account in form.accounts %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center p-4">
+                                <div class="d-flex align-items-center">
+                                    {% if base_account.get_provider.id == 'google' %}
+                                    <div class="social-icon google-icon me-3">
+                                        <i class="fab fa-google"></i>
+                                    </div>
+                                    {% else %}
+                                    <div class="social-icon me-3">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div>
+                                        <h5 class="mb-1">{{ base_account.get_provider.name }}</h5>
+                                        <p class="mb-0 text-muted">
+                                            <small>{{ base_account.display }}</small>
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <button type="submit" name="account" value="{{ base_account.id }}" class="btn btn-outline-danger">
+                                        <i class="fas fa-unlink me-2"></i>Uzish
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </form>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-link fa-4x text-muted mb-3"></i>
+                        <h4>Bog'langan Hisoblar Yo'q</h4>
+                        <p class="text-muted">Siz hali hech qanday ijtimoiy tarmoq hisobini bog'lamadingiz.</p>
+                    </div>
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    <div class="text-center">
+                        <h5 class="mb-3">Ko'proq Hisoblarni Bog'lash</h5>
+                        <a href="{% url 'socialaccount_connections' %}" class="btn btn-google btn-lg">
+                            <i class="fab fa-google me-2"></i>Google'ni Bog'lash
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.social-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: #f8f9fa;
+}
+
+.google-icon {
+    background: #fff;
+    color: #4285f4;
+}
+
+.btn-google {
+    background: #fff;
+    color: #3c4043;
+    border: 1px solid #dadce0;
+}
+
+.btn-google:hover {
+    background: #f8f9fa;
+    color: #3c4043;
+}
+</style>
+{% endblock %}
+
