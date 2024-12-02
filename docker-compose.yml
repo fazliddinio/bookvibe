@@ -1,0 +1,156 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database (optional for VPS - can use shared DB)
+  db:
+    image: postgres:15-alpine
+    container_name: bookvibe_db
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DB_NAME:-bookvibe_db}
+      - POSTGRES_USER=${DB_USER:-bookvibe_user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-bookvibe_password}
+    ports:
+      - "${DB_EXTERNAL_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-bookvibe_user}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - bookvibe_network
+    profiles:
+      - full  # Only start with --profile full (for dev/standalone)
+
+  # Redis (optional for VPS - can use shared Redis)
+  redis:
+    image: redis:7-alpine
+    container_name: bookvibe_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_EXTERNAL_PORT:-6379}:6379"
+    command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - bookvibe_network
+    profiles:
+      - full  # Only start with --profile full (for dev/standalone)
+
+  # Django Application
+  web:
+    build: .
+    container_name: bookvibe_web
+    restart: unless-stopped
+    volumes:
+      - ${MOUNT_CODE:-./}:/app  # Mount code in dev, don't mount in prod
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - logs_volume:/app/logs
+    ports:
+      - "${WEB_PORT:-8080}:8080"
+    env_file:
+      - .env
+    environment:
+      - DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY}
+      - DB_NAME=${DB_NAME:-bookvibe_db}
+      - DB_USER=${DB_USER:-bookvibe_user}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST:-db}
+      - DB_PORT=${DB_PORT:-5432}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/2}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/2}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/3}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
+      - SITE_URL=${SITE_URL:-http://localhost:8080}
+    depends_on:
+      db:
+        condition: service_healthy
+        required: false  # Optional dependency
+      redis:
+        condition: service_healthy
+        required: false  # Optional dependency
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - bookvibe_network
+
+  # Celery Worker
+  celery:
+    build: .
+    container_name: bookvibe_celery
+    restart: unless-stopped
+    command: celery -A bookvibe worker -l info --concurrency=2
+    volumes:
+      - ${MOUNT_CODE:-./}:/app
+      - logs_volume:/app/logs
+    env_file:
+      - .env
+    environment:
+      - DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY}
+      - DB_NAME=${DB_NAME:-bookvibe_db}
+      - DB_USER=${DB_USER:-bookvibe_user}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST:-db}
+      - DB_PORT=${DB_PORT:-5432}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/2}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/2}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/3}
+    depends_on:
+      - web
+    networks:
+      - bookvibe_network
+
+  # Celery Beat (Scheduler)
+  celery-beat:
+    build: .
+    container_name: bookvibe_celery_beat
+    restart: unless-stopped
+    command: celery -A bookvibe beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - ${MOUNT_CODE:-./}:/app
+      - logs_volume:/app/logs
+    env_file:
+      - .env
+    environment:
+      - DEBUG=${DEBUG:-False}
+      - SECRET_KEY=${SECRET_KEY}
+      - DB_NAME=${DB_NAME:-bookvibe_db}
+      - DB_USER=${DB_USER:-bookvibe_user}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST:-db}
+      - DB_PORT=${DB_PORT:-5432}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/2}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/2}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/3}
+    depends_on:
+      - web
+    networks:
+      - bookvibe_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:
+  logs_volume:
+
+networks:
+  bookvibe_network:
+    external: ${NETWORK_EXTERNAL:-false}
+    name: ${NETWORK_NAME:-bookvibe_network}
+
