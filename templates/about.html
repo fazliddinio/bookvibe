@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load user_filters %}
+
+{% block title %}Biz Haqimizda - BookVibe{% endblock %}
+
+{% block extra_css %}{% endblock %}
+
+{% block content %}
+<!-- Hero Bo'limi -->
+<section class="hero">
+    <div class="container py-8" style="max-width: 1100px;">
+        <div class="hero-content text-center">
+            <h1 class="hero-title mb-3">BookVibe'ga Xush Kelibsiz</h1>
+        </div>
+    </div>
+</section>
+
+<!-- Asosiy Xususiyatlar -->
+<section class="py-12">
+    <div class="container" style="max-width: 1100px;">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold mb-4">BookVibe Nima Taklif Qiladi</h2>
+            <p class="text-muted">Kitoblarni boshqarish va o'qish tajribangizni yaxshilash uchun barcha vositalar</p>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Kitoblarni Qidirish va Kashf Qilish -->
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon mb-4">
+                        <i class="fas fa-search text-4xl" style="color: white; font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="feature-title">Kitoblarni Qidirish va Topish</h4>
+                    <p class="feature-description">Nomi, muallifi yoki janri bo'yicha kitoblarni tez va oson toping. Keng kutubxonamizdan o'zingiz uchun mukammal kitobni kashf eting.</p>
+                    <ul class="feature-list">
+                        <li>Tez qidiruv tizimi</li>
+                        <li>Janr bo'yicha filtrlash</li>
+                        <li>ISBN orqali qidirish</li>
+                        <li>Yuz minglab kitoblar bazasi</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Shaxsiy Kutubxona -->
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon mb-4">
+                        <i class="fas fa-book-reader text-4xl" style="color: white; font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="feature-title">Shaxsiy Kutubxonangiz</h4>
+                    <p class="feature-description">O'qimoqchi bo'lgan, o'qiyotgan va o'qilgan kitoblaringizni uchta qulay kategoriyada tartibga soling.</p>
+                    <ul class="feature-list">
+                        <li>O'qimoqchiman ro'yxati</li>
+                        <li>Hozir o'qiyapman</li>
+                        <li>O'qilgan kitoblar</li>
+                        <li>Oson boshqaruv</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Sharh va Baholash -->
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon mb-4">
+                        <i class="fas fa-star text-4xl" style="color: white; font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="feature-title">Sharh va Baholash</h4>
+                    <p class="feature-description">Kitoblar haqida o'z fikringizni bildiring va boshqa o'quvchilar bilan bo'lishing. 5 yulduzli baholash tizimi.</p>
+                    <ul class="feature-list">
+                        <li>Batafsil sharhlar yozish</li>
+                        <li>1-5 yulduz baholash</li>
+                        <li>Sharhlar bo'yicha izohlar</li>
+                        <li>Ovoz berish tizimi</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Kitob Ma'lumotlari -->
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon mb-4">
+                        <i class="fas fa-info-circle text-4xl" style="color: white; font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="feature-title">To'liq Ma'lumotlar</h4>
+                    <p class="feature-description">Har bir kitob haqida batafsil ma'lumot: muallif, nashriyot, nashr yili, sahifalar soni va boshqa ko'p narsalar.</p>
+                    <ul class="feature-list">
+                        <li>Muallif haqida ma'lumot</li>
+                        <li>Nashriyot ma'lumotlari</li>
+                        <li>Kitob muqovasi</li>
+                        <li>Sahifalar soni va til</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Foydalanuvchi Profili -->
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon mb-4">
+                        <i class="fas fa-user text-4xl" style="color: white; font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="feature-title">Shaxsiy Profil</h4>
+                    <p class="feature-description">O'z profilingizni yarating, o'qish faoliyatingizni kuzating va sharhlaringizni boshqaring.</p>
+                    <ul class="feature-list">
+                        <li>Profil rasmi</li>
+                        <li>Shaxsiy bio</li>
+                        <li>O'qish statistikasi</li>
+                        <li>Sharhlar tarixi</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Jamiyat va Hamkorlik -->
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon mb-4">
+                        <i class="fas fa-users text-4xl" style="color: white; font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="feature-title">O'quvchilar Jamiyati</h4>
+                    <p class="feature-description">Boshqa kitobsevarlar bilan bog'laning, ularning tanlovlarini ko'ring va yangi kitoblarni kashf eting.</p>
+                    <ul class="feature-list">
+                        <li>Boshqa profillarni ko'rish</li>
+                        <li>Tavsiyalar olish</li>
+                        <li>Jamiyat sharhlari</li>
+                        <li>Kitob muhokamalar</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Takomillashtirilgan Fikr-Mulohaza Bo'limi -->
+<section class="py-8" style="background: linear-gradient(135deg, rgba(46, 90, 138, 0.05) 0%, rgba(240, 248, 255, 0.1) 100%); margin-top: 5rem;">
+    <div class="container" style="max-width: 900px;">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-md-12">
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-gradient-primary text-white text-center py-4">
+                        <div class="feedback-icon-wrapper mb-2">
+                            <i class="fas fa-comments" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h3 class="mb-2 fw-bold">Sizning Fikringiz Biz Uchun Muhim</h3>
+                        <p class="mb-0 opacity-75 small">BookVibe'ni yaxshilashda bizga yordam bering</p>
+                    </div>
+                    
+                    <div class="card-body p-3 p-md-4">
+                        <form method="post" action="{% url 'feedback:submit' %}" id="feedbackForm" class="feedback-form">
+                            {% csrf_token %}
+                            
+                            <!-- Email Maydoni (Ixtiyoriy) -->
+                            {% if not user.is_authenticated %}
+                            <div class="form-group mb-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-envelope me-2 text-primary"></i>Email Manzil 
+                                    <span class="badge bg-secondary ms-2">Ixtiyoriy</span>
+                                </label>
+                                <input type="email" name="email" class="form-control form-control-lg" 
+                                       placeholder="sizning.email@example.com" 
+                                       maxlength="100">
+                                <small class="form-text text-muted mt-2 d-block">
+                                    <i class="fas fa-info-circle me-1"></i>Javob olish uchun emailingizni qoldiring
+                                </small>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info d-flex align-items-center mb-4">
+                                <i class="fas fa-user-check me-3 fs-4"></i>
+                                <div>
+                                    <strong>{{ user.username|mask_email_username }} sifatida tizimdasiz</strong>
+                                    <small class="d-block text-muted">Javoblar uchun hisobingiz emailidan foydalanamiz</small>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Xabar Maydoni -->
+                            <div class="form-group mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-message me-2 text-primary"></i>Sizning Xabaringiz
+                                </label>
+                                <textarea name="message" id="feedbackMessage" class="form-control form-control-lg" rows="4" 
+                                          placeholder="O'z fikrlaringiz, takliflaringiz yoki muammolaringizni batafsil yozing..." 
+                                          required maxlength="500"></textarea>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-keyboard me-1"></i>
+                                        <span id="char-count">0</span>/500 belgi
+                                    </small>
+                                    <div id="char-progress" class="progress" style="width: 100px; height: 6px;">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Yuborish Tugmasi -->
+                            <div class="text-center mt-3">
+                                <button type="submit" class="btn btn-primary btn-lg px-4" id="submitFeedback">
+                                    <span class="btn-text">
+                                        <i class="fas fa-paper-plane me-2"></i>Xabar Yuborish
+                                    </span>
+                                    <span class="btn-loading" style="display: none;">
+                                        <span class="spinner-border spinner-border-sm me-2"></span>Yuborilmoqda...
+                                    </span>
+                                </button>
+                            </div>
+                            
+                            <!-- Maxfiylik Eslatmasi -->
+                            <div class="text-center mt-4">
+                                <small class="text-muted">
+                                    <i class="fas fa-shield-alt me-1"></i>
+                                    Sizning fikringiz bizni yaxshilashga yordam beradi. Ma'lumotlaringizni hech qachon uchinchi shaxslarga bermaymiz.
+                                </small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Belgilar sanagichi va progress bar
+    const textarea = document.getElementById('feedbackMessage');
+    const charCount = document.getElementById('char-count');
+    const charProgress = document.querySelector('#char-progress .progress-bar');
+    const maxChars = 500;
+    
+    if (textarea && charCount && charProgress) {
+        textarea.addEventListener('input', function() {
+            const length = this.value.length;
+            const percentage = (length / maxChars) * 100;
+            
+            // Sanagichni yangilash
+            charCount.textContent = length;
+            
+            // Progress barni yangilash
+            charProgress.style.width = percentage + '%';
+            
+            // Rang o'zgartirish
+            if (length > 450) {
+                charCount.classList.add('text-danger');
+                charCount.classList.remove('text-muted', 'text-warning');
+                charProgress.classList.remove('bg-primary', 'bg-warning');
+                charProgress.classList.add('bg-danger');
+            } else if (length > 400) {
+                charCount.classList.add('text-warning');
+                charCount.classList.remove('text-muted', 'text-danger');
+                charProgress.classList.remove('bg-primary', 'bg-danger');
+                charProgress.classList.add('bg-warning');
+            } else {
+                charCount.classList.add('text-muted');
+                charCount.classList.remove('text-danger', 'text-warning');
+                charProgress.classList.remove('bg-danger', 'bg-warning');
+                charProgress.classList.add('bg-primary');
+            }
+        });
+        
+        // Avtomatik o'lcham o'zgartirish
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 300) + 'px';
+        });
+    }
+    
+    // Forma yuborilish holati
+    const form = document.getElementById('feedbackForm');
+    const submitBtn = document.getElementById('submitFeedback');
+    const btnText = submitBtn?.querySelector('.btn-text');
+    const btnLoading = submitBtn?.querySelector('.btn-loading');
+    
+    if (form && submitBtn && btnText && btnLoading) {
+        form.addEventListener('submit', function(e) {
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline-flex';
+            submitBtn.classList.add('loading');
+        });
+    }
+});
+</script>
+{% endblock %}
