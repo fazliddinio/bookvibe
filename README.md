@@ -82,16 +82,9 @@ python manage.py test              # all tests
 python manage.py test apps.books   # single app
 ```
 
-## Docs
-
-See the [docs/](docs/) folder for:
-- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md)
-- [Google OAuth Setup](docs/GOOGLE_OAUTH_SETUP.md)
-- [Contributing](docs/CONTRIBUTING.md)
-
 ## License
 
-MIT — see [docs/LICENSE](docs/LICENSE)
+MIT — see [LICENSE](LICENSE)
 
 ---
 
