@@ -1,177 +1,138 @@
-# BookVibe
+# BookVibe — Detailed Documentation
 
-A book review and discovery platform built with Django. Track your reading habits, write reviews, and find new books.
+Extended docs for the BookVibe project. For a quick overview, see the root [README.md](../README.md).
 
-![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
-![Django](https://img.shields.io/badge/Django-4.2+-green.svg)
-![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-
-## Features
-
-- Browse and search books by title, author, or genre
-- Organize books into personal reading shelves (Reading, To Read, Read)
-- Write reviews with 5-star ratings, comment on others' reviews
-- Activity feed to see what others are reading
-- Reading habits tracker with calendar view
-- RESTful API with JWT auth (Django REST Framework)
-- Google OAuth login via django-allauth
-- Background tasks with Celery + Redis
-- Book data from Google Books and OpenLibrary APIs
-- AI-powered recommendations (OpenAI/Cohere, optional)
-
-## Quick Start
+## Local Development Setup
 
 ### Prerequisites
+
 - Python 3.11+
-- PostgreSQL 15+ (or SQLite for development)
-- Redis (optional, for caching and Celery)
+- PostgreSQL 15+
+- Redis (optional — for Celery and caching)
 
-### Local Development Setup
+### Steps
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/bookvibe.git
-   cd bookvibe
-   ```
+```bash
+git clone https://github.com/fazliddinio/bookvibe.git
+cd bookvibe
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # set DEBUG=True
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
 
-2. **Run the setup script**
-   ```bash
-   chmod +x scripts/setup.sh
-   ./scripts/setup.sh
-   ```
+Access:
+- Site: http://localhost:8000
+- Admin: http://localhost:8000/donut1024/
+- API docs: http://localhost:8000/api/v1/schema/swagger-ui/
 
-3. **Start the development server**
-   ```bash
-   source venv/bin/activate
-   python manage.py runserver
-   ```
+### Celery (optional)
 
-4. **Access the application**
-   - Main site: http://localhost:8000
-   - Admin panel: http://localhost:8000/admin/
-   - API docs: http://localhost:8000/api/v1/docs/
+```bash
+celery -A bookvibe worker -l info
+celery -A bookvibe beat -l info
+```
 
-### Docker Setup
+## Docker Setup
 
-1. **Copy environment template**
-   ```bash
-   cp env_template.md .env
-   # Edit .env with your configuration
-   ```
+```bash
+cp .env.example .env   # edit values
+docker compose --profile full up -d
+docker compose exec web python manage.py migrate
+docker compose exec web python manage.py createsuperuser
+docker compose exec web python manage.py collectstatic --noinput
+```
 
-2. **Run with Docker Compose**
-   ```bash
-   docker-compose up -d
-   ```
+The `--profile full` flag starts PostgreSQL and Redis containers alongside the app. Without it, only the web, celery, and celery-beat containers start (useful when sharing a database from another project on the same VPS).
 
-3. **Create superuser**
-   ```bash
-   docker-compose exec web python manage.py createsuperuser
-   ```
+## Configuration
+
+All config is via environment variables. See [`.env.example`](../.env.example) for the full list.
+
+Key variables:
+
+| Variable | Required in Prod | Description |
+|----------|-----------------|-------------|
+| `SECRET_KEY` | Yes | Django secret key. App refuses to start with the default in production. |
+| `DEBUG` | No | Defaults to `False`. Set `True` for local dev. |
+| `DB_PASSWORD` | Yes | PostgreSQL password. |
+| `ALLOWED_HOSTS` | Yes | Comma-separated hostnames. |
+| `CSRF_TRUSTED_ORIGINS` | Yes | Full URLs with scheme, e.g. `https://bookvibe.org` |
+
+## API Reference
+
+Base URL: `/api/v1/`
+
+### Auth
+- `POST /api/v1/token/` — JWT access + refresh tokens
+- `POST /api/v1/token/refresh/` — refresh access token
+- `POST /api/v1/token/verify/` — verify a token
+
+### Books
+- `GET /api/v1/books/` — list (search via `?search=`, filter via `?genre=`)
+- `GET /api/v1/books/{id}/` — detail
+- `POST /api/v1/books/{id}/add_review/` — submit review (authenticated)
+- `GET /api/v1/books/{id}/reviews/` — list reviews for a book
+
+### Genres / Authors
+- `GET /api/v1/genres/` — all genres
+- `GET /api/v1/authors/` — all authors
+- `GET /api/v1/authors/{id}/books/` — books by author
+
+### Users
+- `GET /api/v1/users/me/` — current user profile
+- `GET /api/v1/users/{id}/reviews/` — user's reviews
+
+### Docs
+- `GET /api/v1/schema/swagger-ui/` — Swagger UI
+- `GET /api/v1/schema/redoc/` — ReDoc
+
+Rate limits: 100 req/hour (anonymous), 1000 req/hour (authenticated).
+
+## Testing
+
+```bash
+python manage.py test                # all (66 tests)
+python manage.py test apps.books     # single app
+python manage.py test apps.users     # auth tests
+
+# with coverage
+coverage run manage.py test && coverage report
+```
 
 ## Project Structure
 
 ```
 bookvibe/
 ├── apps/
-│   ├── books/          # Book models, views, API, services
-│   ├── users/          # Auth, profiles, email verification
-│   ├── reading_lists/  # Personal reading shelves
-│   ├── feed/           # Activity feed
-│   ├── habits/         # Reading tracker & calendar
-│   └── feedback/       # User feedback
-├── bookvibe/           # Django settings, URLs, Celery config
-├── templates/          # HTML templates
-├── static/             # CSS, images
-├── scripts/            # Setup & deploy scripts
-├── nginx/              # Nginx config
-└── docker-compose.yml
+│   ├── books/          # Book CRUD, reviews, search, external APIs
+│   ├── users/          # Registration, login, profiles
+│   ├── reading_lists/  # Reading shelves (Reading, To Read, Read)
+│   ├── feed/           # Activity feed (home page)
+│   ├── habits/         # Reading tracker with calendar
+│   └── feedback/       # Feedback form
+├── bookvibe/
+│   ├── settings.py     # All config (reads .env)
+│   ├── urls.py         # Root URLs
+│   ├── api_urls.py     # REST API router
+│   ├── celery.py       # Celery config
+│   └── views.py        # Health check
+├── templates/          # Base templates, allauth overrides
+├── static/css/         # Stylesheets
+├── nginx/              # Nginx reverse proxy config
+├── scripts/            # setup.sh, deploy.sh
+├── .github/workflows/  # CI/CD pipeline
+├── docker-compose.yml
+├── Dockerfile
+└── requirements.txt
 ```
 
-## Tech Stack
+## Other Docs
 
-- **Backend:** Django 4.2, DRF, Celery
-- **Database:** PostgreSQL 15, Redis
-- **Auth:** Django Allauth (Google OAuth) + JWT
-- **Frontend:** Bootstrap 5, Font Awesome
-- **Deploy:** Docker, Nginx, Gunicorn, GitHub Actions
-
-## Configuration
-
-Key environment variables (see `env_template.md` for full list):
-
-```bash
-# Django
-SECRET_KEY=your-secret-key
-DEBUG=False
-ALLOWED_HOSTS=yourdomain.com
-
-# Database
-DB_NAME=bookvibe_db
-DB_USER=bookvibe_user
-DB_PASSWORD=your-password
-DB_HOST=db
-DB_PORT=5432
-
-# Email
-EMAIL_HOST=smtp.gmail.com
-EMAIL_HOST_USER=your-email@gmail.com
-EMAIL_HOST_PASSWORD=your-app-password
-```
-
-## API
-
-Main endpoints:
-- `GET /api/v1/books/` — list/search books
-- `POST /api/v1/books/{id}/reviews/` — add review
-- `GET /api/v1/users/profile/` — current user profile
-- `POST /api/v1/auth/token/` — get JWT token
-
-## Tests
-
-```bash
-python manage.py test
-python manage.py test apps.books  # single app
-```
-
-## Deployment
-
-```bash
-# Docker
-./scripts/deploy.sh production
-docker-compose logs -f web
-```
-
-Or manually:
-```bash
-python manage.py migrate
-python manage.py collectstatic
-gunicorn bookvibe.wsgi:application
-```
-
-See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for full instructions.
-
-## Contributing
-
-Contributions are welcome! Here's how you can help:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-**Development Guidelines:**
-- Follow PEP 8 style guide
-- Write tests for new features
-- Update documentation as needed
-- Keep commits atomic and well-described
-
-## License
-
-MIT — see [LICENSE](LICENSE) for details.
-
----
-
-Built by Fazliddin
+- [Deployment Guide](DEPLOYMENT_GUIDE.md) — VPS + Docker + CI/CD
+- [Google OAuth Setup](GOOGLE_OAUTH_SETUP.md) — Google login configuration
+- [Contributing](CONTRIBUTING.md) — How to contribute
+- [License](LICENSE) — MIT
 
