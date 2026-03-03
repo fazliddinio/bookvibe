@@ -1,10 +1,7 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
-from django.utils import timezone
-from datetime import timedelta
-from apps.users.models import UserProfile, PendingRegistration
-from unittest.mock import patch
+from apps.users.models import UserProfile
 from allauth.socialaccount.models import SocialApp
 from django.contrib.sites.models import Site
 
@@ -34,64 +31,35 @@ class RegistrationTestCase(BaseAuthTestCase):
         response = self.client.get(self.register_url)
         self.assertEqual(response.status_code, 200)
 
-    @patch("apps.users.utils.send_email_with_fallback")
-    def test_successful_registration(self, mock_send_email):
-        mock_send_email.return_value = True
+    def test_successful_registration(self):
         response = self.client.post(self.register_url, {
-            "username": "test@example.com",
             "email": "test@example.com",
-            "password1": "testpass123",
-            "password2": "testpass123",
-        })
-        self.assertEqual(response.status_code, 302)
-        pending = PendingRegistration.objects.filter(email="test@example.com").first()
-        self.assertIsNotNone(pending)
-        self.assertFalse(User.objects.filter(email="test@example.com").exists())
-
-    def test_registration_password_mismatch(self):
-        response = self.client.post(self.register_url, {
-            "username": "test@example.com",
-            "email": "test@example.com",
-            "password1": "testpass123",
-            "password2": "differentpassword",
-        })
-        self.assertEqual(response.status_code, 200)
-
-
-class EmailVerificationTestCase(BaseAuthTestCase):
-
-    def setUp(self):
-        self.client = Client()
-        self.verify_url = reverse("users:verify_email_code")
-
-    def test_successful_verification(self):
-        pending = PendingRegistration.create_pending("test@example.com", "testpass123")
-        response = self.client.post(self.verify_url, {
-            "verification_code": pending.verification_code,
+            "password": "testpass123",
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(User.objects.filter(email="test@example.com").exists())
-        self.assertFalse(
-            PendingRegistration.objects.filter(email="test@example.com").exists()
-        )
+        self.assertTrue(response.wsgi_request.user.is_authenticated)
 
-    def test_wrong_code(self):
-        PendingRegistration.create_pending("test@example.com", "testpass123")
-        response = self.client.post(self.verify_url, {
-            "verification_code": "999999",
+    def test_registration_short_password(self):
+        response = self.client.post(self.register_url, {
+            "email": "test@example.com",
+            "password": "12345",
         })
         self.assertEqual(response.status_code, 200)
         self.assertFalse(User.objects.filter(email="test@example.com").exists())
 
-    def test_expired_code(self):
-        pending = PendingRegistration.create_pending("test@example.com", "testpass123")
-        pending.expires_at = timezone.now() - timedelta(minutes=11)
-        pending.save()
-        response = self.client.post(self.verify_url, {
-            "verification_code": pending.verification_code,
+    def test_duplicate_email_updates_password(self):
+        User.objects.create_user(
+            username="test@example.com", email="test@example.com",
+            password="oldpass123",
+        )
+        response = self.client.post(self.register_url, {
+            "email": "test@example.com",
+            "password": "newpass456",
         })
         self.assertEqual(response.status_code, 302)
-        self.assertFalse(User.objects.filter(email="test@example.com").exists())
+        user = User.objects.get(email="test@example.com")
+        self.assertTrue(user.check_password("newpass456"))
 
 
 class LoginTestCase(BaseAuthTestCase):
@@ -170,26 +138,12 @@ class ProfileTestCase(BaseAuthTestCase):
         self.assertEqual(self.profile.bio, "This is my bio")
 
 
-class PendingRegistrationModelTest(TestCase):
+class UserProfileModelTest(TestCase):
 
-    def test_create_pending(self):
-        pending = PendingRegistration.create_pending("test@example.com", "testpass123")
-        self.assertEqual(pending.email, "test@example.com")
-        self.assertEqual(len(pending.verification_code), 6)
-
-    def test_is_expired(self):
-        pending = PendingRegistration.create_pending("test@example.com", "testpass123")
-        self.assertFalse(pending.is_expired())
-        pending.expires_at = timezone.now() - timedelta(minutes=11)
-        pending.save()
-        self.assertTrue(pending.is_expired())
-
-    def test_cleanup_expired(self):
-        PendingRegistration.create_pending("test1@example.com", "pass")
-        p2 = PendingRegistration.create_pending("test2@example.com", "pass")
-        p2.expires_at = timezone.now() - timedelta(minutes=11)
-        p2.save()
-        count = PendingRegistration.cleanup_expired()
-        self.assertEqual(count, 1)
-        self.assertTrue(PendingRegistration.objects.filter(email="test1@example.com").exists())
-        self.assertFalse(PendingRegistration.objects.filter(email="test2@example.com").exists())
+    def test_profile_str(self):
+        user = User.objects.create_user(
+            username="test@example.com", email="test@example.com",
+            password="testpass123",
+        )
+        profile = UserProfile.objects.create(user=user)
+        self.assertIn("test@example.com", str(profile))

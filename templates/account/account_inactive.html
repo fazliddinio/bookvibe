@@ -8,7 +8,6 @@
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
             <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
-                <!-- Header with gradient -->
                 <div class="card-header text-center py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
                     <div class="mb-3">
                         <i class="fas fa-exclamation-circle" style="font-size: 4rem; color: white;"></i>
@@ -18,77 +17,20 @@
 
                 <div class="card-body p-5">
                     <div class="alert alert-warning mb-4" style="border-radius: 12px; background: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107;">
-                        <h5 class="alert-heading mb-3">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Email Tasdiqlanmagan
-                        </h5>
                         <p class="mb-0">
-                            Hisobingiz hali faollashtirilmagan. Bu odatda email manzil tasdiqlanmaganligini bildiradi.
+                            Hisobingiz hozirda faol emas. Iltimos, qayta ro'yxatdan o'ting yoki tizimga kiring.
                         </p>
                     </div>
 
-                    <div class="mb-4">
-                        <h5 class="mb-3">
-                            <i class="fas fa-lightbulb text-warning me-2"></i>
-                            Quyidagi variantlardan birini tanlang:
-                        </h5>
-                        
-                        <div class="list-group mb-4">
-                            <div class="list-group-item d-flex align-items-start" style="border-radius: 12px; border: 2px solid #e9ecef; margin-bottom: 0.75rem;">
-                                <div class="me-3" style="font-size: 1.5rem; color: #667eea;">
-                                    <i class="fas fa-envelope-open-text"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-1">Email Tasdiqlash Kodini Tekshiring</h6>
-                                    <p class="mb-0 text-muted small">Email qutingizga yuborilgan 6 raqamli kodni kiriting</p>
-                                </div>
-                            </div>
-
-                            <div class="list-group-item d-flex align-items-start" style="border-radius: 12px; border: 2px solid #e9ecef; margin-bottom: 0.75rem;">
-                                <div class="me-3" style="font-size: 1.5rem; color: #28a745;">
-                                    <i class="fab fa-google"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-1">Google Orqali Kirish</h6>
-                                    <p class="mb-0 text-muted small">Google hisobingiz bilan tez va oson tizimga kiring</p>
-                                </div>
-                            </div>
-
-                            <div class="list-group-item d-flex align-items-start" style="border-radius: 12px; border: 2px solid #e9ecef;">
-                                <div class="me-3" style="font-size: 1.5rem; color: #dc3545;">
-                                    <i class="fas fa-redo-alt"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-1">Yangi Kod So'rash</h6>
-                                    <p class="mb-0 text-muted small">Agar kod olmagan bo'lsangiz, qaytadan yuborishni so'rang</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr class="my-4" style="border-top: 2px dashed #e9ecef;">
-
                     <div class="d-grid gap-3">
-                        <a href="{% url 'users:verify_email_code' %}" class="btn btn-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; font-weight: 600;">
-                            <i class="fas fa-envelope-open-text me-2"></i>
-                            Email Kodini Kiriting
+                        <a href="{% url 'users:login' %}" class="btn btn-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; font-weight: 600;">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            Tizimga Kirish
                         </a>
 
-                        <a href="{% url 'socialaccount_login' provider='google' %}" class="btn btn-success btn-lg" style="border-radius: 12px; font-weight: 600;">
-                            <i class="fab fa-google me-2"></i>
-                            Google bilan Davom Etish
-                        </a>
-
-                        <a href="{% url 'users:resend_verification' %}" class="btn btn-outline-primary btn-lg" style="border-radius: 12px; font-weight: 600;">
-                            <i class="fas fa-paper-plane me-2"></i>
-                            Tasdiqlash Kodini Qayta Yuborish
-                        </a>
-
-                        <hr class="my-2">
-
-                        <a href="{% url 'users:register' %}" class="btn btn-outline-secondary" style="border-radius: 12px;">
+                        <a href="{% url 'users:register' %}" class="btn btn-outline-primary btn-lg" style="border-radius: 12px; font-weight: 600;">
                             <i class="fas fa-user-plus me-2"></i>
-                            Yangi Akkaunt Yaratish
+                            Ro'yxatdan O'tish
                         </a>
 
                         <a href="{% url 'feed:home' %}" class="btn btn-link text-muted">
@@ -96,39 +38,9 @@
                             Bosh Sahifaga Qaytish
                         </a>
                     </div>
-
-                    <div class="alert alert-info mt-4 mb-0" style="border-radius: 12px; background: rgba(13, 110, 253, 0.1); border: none;">
-                        <small class="text-muted">
-                            <i class="fas fa-question-circle me-1"></i>
-                            Yordam kerakmi? Bizning <a href="{% url 'about' %}">qo'llab-quvvatlash</a> jamoamiz bilan bog'laning.
-                        </small>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-    .list-group-item {
-        transition: all 0.3s ease;
-        background: white;
-    }
-    
-    .list-group-item:hover {
-        transform: translateX(5px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        border-color: #667eea !important;
-    }
-
-    .btn {
-        transition: all 0.3s ease;
-    }
-
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-</style>
 {% endblock %}
-

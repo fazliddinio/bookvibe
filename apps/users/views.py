@@ -9,60 +9,43 @@ from .forms import (
     UserRegistrationForm,
     UserLoginForm,
     UserProfileForm,
-    EmailVerificationCodeForm,
     UsernameChangeForm,
     PasswordChangeForm,
 )
-from .models import UserProfile, PendingRegistration
+from .models import UserProfile
 
 
 def register_view(request):
     """
-    Registration - user enters email and password.
-    Creates PendingRegistration (NOT User yet) and sends verification code.
-    User is created only after email verification.
+    Simple registration: email + password.
+    If email already exists, update the password.
     """
     if request.method == "POST":
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
-            password = form.cleaned_data['password1']
-            
-            # Check if there's already a pending registration
-            if hasattr(form, 'pending_registration'):
-                # Update existing pending registration
-                pending = form.pending_registration
-                pending.generate_new_code()  # This updates password too
-                from django.contrib.auth.hashers import make_password
-                pending.password_hash = make_password(password)
-                pending.save()
+            password = form.cleaned_data['password']
+
+            user = User.objects.filter(email=email).first()
+            if user:
+                # Email exists — update password
+                user.set_password(password)
+                user.save()
             else:
-                # Create new pending registration
-                pending = PendingRegistration.create_pending(email, password)
-            
-            # Store email in session for resend functionality
-            request.session['verification_email'] = email
-            
-            # Send verification email
-            from .utils import send_email_with_fallback, create_verification_email_content
-            plain_message, html_message = create_verification_email_content(pending.verification_code)
-            
-            if send_email_with_fallback(
-                subject="Bookvibe tasdiqlash kodi",
-                plain_message=plain_message,
-                html_message=html_message,
-                recipient_email=email
-            ):
-                messages.success(
-                    request,
-                    f"Tasdiqlash kodi {email} manziliga yuborildi. Email qutingizni tekshiring.",
+                # Create new user
+                user = User.objects.create_user(
+                    username=email,
+                    email=email,
+                    password=password,
                 )
-                return redirect("users:verify_email_code")
-            else:
-                messages.error(
-                    request,
-                    "Tasdiqlash emailini yuborib bo'lmadi. Qaytadan urinib ko'ring.",
-                )
+                UserProfile.objects.get_or_create(user=user)
+
+            # Log in and redirect
+            user = authenticate(request, username=email, password=password)
+            if user:
+                login(request, user)
+                messages.success(request, "Xush kelibsiz!")
+                return redirect('feed:home')
     else:
         form = UserRegistrationForm()
 
@@ -184,163 +167,6 @@ def edit_profile_view(request):
     }
 
     return render(request, "users/profile_edit.html", context)
-
-
-def verify_email_code_view(request):
-    """
-    Verify email code and CREATE user in database.
-    This is when the user is actually registered (after email verification).
-    """
-    if request.method == "POST":
-        form = EmailVerificationCodeForm(request.POST)
-        if form.is_valid():
-            verification_code = form.cleaned_data["verification_code"]
-
-            try:
-                # Find pending registration with matching code
-                pending = PendingRegistration.objects.get(
-                    verification_code=verification_code
-                )
-
-                # Check if code is expired
-                if pending.is_expired():
-                    # Store email for resend
-                    request.session['verification_email'] = pending.email
-                    messages.error(
-                        request,
-                        "Tasdiqlash kodining muddati o'tgan (10 daqiqa). Yangi kodni so'rang.",
-                    )
-                    return redirect("users:resend_verification")
-
-                # CREATE THE USER NOW (email is verified)
-                user = User.objects.create_user(
-                    username=pending.email,
-                    email=pending.email,
-                    password=None  # We'll set it from the hash
-                )
-                # Set the hashed password directly
-                user.password = pending.password_hash
-                user.is_active = True  # User is active since email is verified
-                user.save()
-
-                # Create user profile
-                profile = UserProfile.objects.create(
-                    user=user,
-                    is_email_verified=True  # Email is verified
-                )
-
-                # Delete the pending registration
-                pending.delete()
-                
-                # Automatically log in the user with explicit backend
-                user.backend = 'django.contrib.auth.backends.ModelBackend'
-                login(request, user)
-
-                # Send welcome email
-                try:
-                    profile.send_welcome_email()
-                except Exception as e:
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    logger.warning(f"Failed to send welcome email: {e}")
-                
-                # Clear verification email from session
-                if 'verification_email' in request.session:
-                    del request.session['verification_email']
-                
-                messages.success(request, "Email muvaffaqiyatli tasdiqlandi! Xush kelibsiz!")
-                return redirect("feed:home")
-
-            except PendingRegistration.DoesNotExist:
-                messages.error(
-                    request, "Noto'g'ri tasdiqlash kodi. Tekshirib, qaytadan urinib ko'ring."
-                )
-            except Exception as e:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"Email verification error: {e}")
-                messages.error(
-                    request, "Tasdiqlashda xatolik yuz berdi. Qaytadan urinib ko'ring."
-                )
-        else:
-            # Show form errors
-            for field_errors in form.errors.values():
-                for error in field_errors:
-                    messages.error(request, error)
-    else:
-        form = EmailVerificationCodeForm()
-
-    return render(request, "users/verify_email_code.html", {"form": form})
-
-
-def resend_verification_email_view(request):
-    """
-    Resend verification email for pending registrations.
-    """
-    # Get email from POST, GET params, or session
-    email = None
-    if request.method == "POST":
-        email = request.POST.get("email")
-    else:
-        # Try to get email from session (set during registration)
-        email = request.session.get("verification_email")
-    
-    if not email:
-        messages.error(request, "Email topilmadi. Iltimos, qaytadan ro'yxatdan o'ting.")
-        return redirect("users:register")
-    
-    try:
-        # Check if user already exists (fully registered)
-        if User.objects.filter(email=email).exists():
-            messages.info(request, "Bu email allaqachon ro'yxatdan o'tgan. Tizimga kirishingiz mumkin.")
-            return redirect("users:login")
-        
-        # Find pending registration
-        pending = PendingRegistration.objects.get(email=email)
-        
-        # Check rate limiting (1 minute between requests)
-        time_since_created = timezone.now() - pending.created_at
-        if time_since_created < timedelta(minutes=1):
-            remaining_seconds = 60 - time_since_created.total_seconds()
-            messages.warning(
-                request, 
-                f"Iltimos, {int(remaining_seconds)} soniyadan keyin qayta urinib ko'ring."
-            )
-            return redirect("users:verify_email_code")
-        
-        # Generate new code and send
-        new_code = pending.generate_new_code()
-        
-        from .utils import send_email_with_fallback, create_verification_email_content
-        plain_message, html_message = create_verification_email_content(new_code)
-        
-        if send_email_with_fallback(
-            subject="Bookvibe tasdiqlash kodi",
-            plain_message=plain_message,
-            html_message=html_message,
-            recipient_email=email
-        ):
-            request.session['verification_email'] = email
-            messages.success(
-                request, "Yangi tasdiqlash kodi yuborildi! Email qutingizni tekshiring."
-            )
-            return redirect("users:verify_email_code")
-        else:
-            messages.error(
-                request, "Tasdiqlash kodini yuborib bo'lmadi. Biroz kutib, qaytadan urinib ko'ring."
-            )
-            
-    except PendingRegistration.DoesNotExist:
-        messages.error(request, "Ro'yxatdan o'tish topilmadi. Iltimos, qaytadan ro'yxatdan o'ting.")
-        return redirect("users:register")
-    except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Resend verification error: {e}")
-        messages.error(request, "Xatolik yuz berdi. Qaytadan urinib ko'ring.")
-        return redirect("users:register")
-    
-    return redirect("users:verify_email_code")
 
 
 @login_required

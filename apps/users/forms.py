@@ -1,114 +1,31 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from .models import UserProfile
 
 
-class UserRegistrationForm(UserCreationForm):
-    # Redefine username field without unique constraint to allow unverified re-registration
-    username = forms.CharField(
-        max_length=150,
-        required=True,
-        error_messages={
-            'required': "Bu maydon to'ldirilishi shart.",
-        }
-    )
-    
+class UserRegistrationForm(forms.Form):
     email = forms.EmailField(
-        required=True,
-        help_text="Talab qilinadi. To'g'ri email manzilini kiriting.",
-        widget=forms.EmailInput(attrs={"placeholder": "Email manzilingizni kiriting"}),
+        label="Email",
+        widget=forms.EmailInput(attrs={"placeholder": "sizning@email.com"}),
         error_messages={
             'required': "Bu maydon to'ldirilishi shart.",
             'invalid': "To'g'ri email manzilini kiriting.",
         }
     )
-
-    class Meta:
-        model = User
-        fields = ("username", "email", "password1", "password2")
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Override widgets to add placeholders
-        self.fields["username"].widget.attrs.update(
-            {"placeholder": "Email manzilingizni kiriting"}
-        )
-        self.fields["password1"].widget.attrs.update(
-            {"placeholder": "Parolni kiriting (kamida 6 ta belgi)"}
-        )
-        self.fields["password2"].widget.attrs.update(
-            {"placeholder": "Parolni tasdiqlang"}
-        )
-        
-        # Add Uzbek error messages
-        self.fields["username"].error_messages = {
+    password = forms.CharField(
+        label="Parol",
+        widget=forms.PasswordInput(attrs={"placeholder": "Parolni kiriting (kamida 6 belgi)"}),
+        error_messages={
             'required': "Bu maydon to'ldirilishi shart.",
         }
-        self.fields["password1"].error_messages = {
-            'required': "Bu maydon to'ldirilishi shart.",
-        }
-        self.fields["password2"].error_messages = {
-            'required': "Bu maydon to'ldirilishi shart.",
-        }
-        
-        # Set Uzbek labels
-        self.fields["username"].label = "Email"
-        self.fields["password1"].label = "Parol"
-        self.fields["password2"].label = "Parolni tasdiqlang"
+    )
 
-        # Customize password validation
-        self.fields["password1"].help_text = "Kamida 6 ta belgi talab qilinadi."
-        self.fields["password2"].help_text = "Yuqoridagi parol bilan bir xil parolni kiriting."
-    
-    def clean_password2(self):
-        password1 = self.cleaned_data.get("password1")
-        password2 = self.cleaned_data.get("password2")
-        if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Ikki parol maydoni mos kelmadi.")
-        return password2
-
-    def clean_password1(self):
-        password1 = self.cleaned_data.get("password1")
-        if len(password1) < 6:
+    def clean_password(self):
+        password = self.cleaned_data.get("password")
+        if password and len(password) < 6:
             raise forms.ValidationError("Parol kamida 6 ta belgidan iborat bo'lishi kerak.")
-        return password1
-
-    def clean_email(self):
-        from apps.users.models import PendingRegistration
-        
-        email = self.cleaned_data.get("email")
-        
-        # Check if email already exists in User table (fully registered)
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("Bu email manzil allaqachon ro'yxatdan o'tgan.")
-        
-        # Check if email has a pending registration
-        pending = PendingRegistration.objects.filter(email=email).first()
-        if pending:
-            # Mark that we need to resend verification code for this pending registration
-            self.pending_registration = pending
-        
-        return email
-
-    def clean_username(self):
-        username = self.cleaned_data.get("username")
-        email = self.cleaned_data.get("email")
-        if email:
-            # Use email as username
-            # Check if username (email) already exists
-            if User.objects.filter(username=email).exists():
-                raise forms.ValidationError("Bu email manzil allaqachon ro'yxatdan o'tgan.")
-            return email
-        return username
-
-    def save(self, commit=True):
-        """
-        This method is NOT used anymore. Registration creates PendingRegistration, not User.
-        Keeping it for compatibility but it should not be called.
-        """
-        raise NotImplementedError("Use PendingRegistration.create_pending() instead")
+        return password
 
 
 class UserLoginForm(forms.Form):
@@ -191,36 +108,6 @@ class UserProfileForm(forms.ModelForm):
             profile.user.save()
             profile.save()
         return profile
-
-
-class EmailVerificationCodeForm(forms.Form):
-    verification_code = forms.CharField(
-        max_length=6,
-        min_length=6,
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "6 raqamli kodni kiriting",
-                "maxlength": "6",
-                "pattern": "[0-9]{6}",
-                "inputmode": "numeric",
-            }
-        ),
-        help_text="Emailingizga yuborilgan 6 raqamli kodni kiriting",
-        error_messages={
-            'required': "Bu maydon to'ldirilishi shart.",
-            'min_length': "Tasdiqlash kodi 6 raqamdan iborat bo'lishi kerak.",
-            'max_length': "Tasdiqlash kodi 6 raqamdan iborat bo'lishi kerak.",
-            'invalid': "Faqat raqamlar kiritishingiz mumkin.",
-        }
-    )
-    
-    def clean_verification_code(self):
-        code = self.cleaned_data.get('verification_code')
-        if code and not code.isdigit():
-            raise forms.ValidationError("Tasdiqlash kodi faqat raqamlardan iborat bo'lishi kerak.")
-        if code and len(code) != 6:
-            raise forms.ValidationError("Tasdiqlash kodi 6 raqamdan iborat bo'lishi kerak.")
-        return code
 
 
 class UsernameChangeForm(forms.Form):
