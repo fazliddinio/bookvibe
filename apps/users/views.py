@@ -18,7 +18,7 @@ from .models import UserProfile
 def register_view(request):
     """
     Simple registration: email + password.
-    If email already exists, update the password.
+    Rejects registration if email already exists.
     """
     if request.method == "POST":
         form = UserRegistrationForm(request.POST)
@@ -26,13 +26,9 @@ def register_view(request):
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
 
-            user = User.objects.filter(email=email).first()
-            if user:
-                # Email exists — update password
-                user.set_password(password)
-                user.save()
+            if User.objects.filter(email=email).exists():
+                form.add_error('email', "Bu email allaqachon ro'yxatdan o'tgan. Tizimga kiring.")
             else:
-                # Create new user
                 user = User.objects.create_user(
                     username=email,
                     email=email,
@@ -40,12 +36,11 @@ def register_view(request):
                 )
                 UserProfile.objects.get_or_create(user=user)
 
-            # Log in and redirect
-            user = authenticate(request, username=email, password=password)
-            if user:
-                login(request, user)
-                messages.success(request, "Xush kelibsiz!")
-                return redirect('feed:home')
+                user = authenticate(request, username=email, password=password)
+                if user:
+                    login(request, user)
+                    messages.success(request, "Xush kelibsiz!")
+                    return redirect('feed:home')
     else:
         form = UserRegistrationForm()
 
@@ -77,8 +72,9 @@ def login_view(request):
                     messages.success(request, f"Xush kelibsiz!")
                     
                     # Redirect to 'next' parameter or home
+                    from django.utils.http import url_has_allowed_host_and_scheme
                     next_url = request.GET.get('next', '')
-                    if next_url and next_url.startswith('/') and not next_url.startswith('//'):
+                    if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
                         return redirect(next_url)
                     return redirect('feed:home')
                 else:

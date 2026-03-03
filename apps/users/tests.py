@@ -48,7 +48,7 @@ class RegistrationTestCase(BaseAuthTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(User.objects.filter(email="test@example.com").exists())
 
-    def test_duplicate_email_updates_password(self):
+    def test_duplicate_email_rejected(self):
         User.objects.create_user(
             username="test@example.com", email="test@example.com",
             password="oldpass123",
@@ -57,9 +57,9 @@ class RegistrationTestCase(BaseAuthTestCase):
             "email": "test@example.com",
             "password": "newpass456",
         })
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)  # stays on form with error
         user = User.objects.get(email="test@example.com")
-        self.assertTrue(user.check_password("newpass456"))
+        self.assertTrue(user.check_password("oldpass123"))  # password unchanged
 
 
 class LoginTestCase(BaseAuthTestCase):

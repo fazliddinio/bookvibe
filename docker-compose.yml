@@ -12,8 +12,8 @@ services:
       - POSTGRES_DB=${DB_NAME:-bookvibe_db}
       - POSTGRES_USER=${DB_USER:-bookvibe_user}
       - POSTGRES_PASSWORD=${DB_PASSWORD:-bookvibe_password}
-    ports:
-      - "${DB_EXTERNAL_PORT:-5432}:5432"
+    expose:
+      - "5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-bookvibe_user}"]
       interval: 30s
@@ -31,8 +31,8 @@ services:
     restart: unless-stopped
     volumes:
       - redis_data:/data
-    ports:
-      - "${REDIS_EXTERNAL_PORT:-6379}:6379"
+    expose:
+      - "6379"
     command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]

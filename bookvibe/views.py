@@ -19,12 +19,11 @@ def health_check(request):
                 "timestamp": timezone.now().isoformat(),
             }
         )
-    except Exception as e:
+    except Exception:
         return JsonResponse(
             {
                 "status": "unhealthy",
                 "database": "disconnected",
-                "error": str(e),
                 "timestamp": timezone.now().isoformat(),
             },
             status=500,
