@@ -16,10 +16,15 @@ if ENV_FILE.exists():
     config = Config(RepositoryEnv(str(ENV_FILE)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config("SECRET_KEY", default="django-insecure-change-this-in-production")
+SECRET_KEY = config("SECRET_KEY", default="django-insecure-dev-only-key-change-in-production")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config("DEBUG", default=True, cast=bool)
+DEBUG = config("DEBUG", default=False, cast=bool)
+
+# Crash loudly if production uses the insecure default key
+if not DEBUG and SECRET_KEY.startswith("django-insecure"):
+    raise ValueError("SECRET_KEY must be set to a secure value in production. "
+                     "Set it in your .env file.")
 
 ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS", default="localhost,127.0.0.1,0.0.0.0", cast=Csv()

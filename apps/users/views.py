@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils import timezone
+from django_ratelimit.decorators import ratelimit
 from datetime import timedelta
 from .forms import (
     UserRegistrationForm,
@@ -15,6 +16,7 @@ from .forms import (
 from .models import UserProfile
 
 
+@ratelimit(key='ip', rate='10/m', method='POST', block=True)
 def register_view(request):
     """
     Simple registration: email + password.
@@ -47,6 +49,7 @@ def register_view(request):
     return render(request, "users/register.html", {"form": form})
 
 
+@ratelimit(key='ip', rate='10/m', method='POST', block=True)
 def login_view(request):
     """
     User login view with comprehensive error handling and session management.
