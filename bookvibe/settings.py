@@ -39,6 +39,7 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    SECURE_REDIRECT_EXEMPT = [r"^health/$"]
 else:
     SECURE_SSL_REDIRECT = False
 
