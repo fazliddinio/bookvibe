@@ -1,43 +1,25 @@
-# 📚 BookVibe
+# BookVibe
 
-A modern book review and discovery platform built with Django. Track your reading, share reviews, and discover your next favorite book.
+A book review and discovery platform built with Django. Track your reading habits, write reviews, and find new books.
 
 ![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
 ![Django](https://img.shields.io/badge/Django-4.2+-green.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-## 📖 Complete Tutorial Available!
+## Features
 
-**Want to learn how everything works?** Check out our comprehensive 3-part tutorial:
+- Browse and search books by title, author, or genre
+- Organize books into personal reading shelves (Reading, To Read, Read)
+- Write reviews with 5-star ratings, comment on others' reviews
+- Activity feed to see what others are reading
+- Reading habits tracker with calendar view
+- RESTful API with JWT auth (Django REST Framework)
+- Google OAuth login via django-allauth
+- Background tasks with Celery + Redis
+- Book data from Google Books and OpenLibrary APIs
+- AI-powered recommendations (OpenAI/Cohere, optional)
 
-👉 **[Start Learning: Tutorial Index](./TUTORIAL_INDEX.md)** 👈
-
-This isn't just documentation—it's a complete book that teaches you:
-- ✅ Django from basics to advanced
-- ✅ Building production-ready applications
-- ✅ Testing, deployment, and best practices
-- ✅ **200+ pages** of detailed explanations with code examples
-
-Perfect for beginners and experienced developers alike!
-
-## ✨ Features
-
-### Core Functionality
-- **Book Discovery**: Browse and search thousands of books by title, author, or genre
-- **Personal Library**: Organize books into Reading, To Read, and Read shelves
-- **Reviews & Ratings**: Share your thoughts with 5-star ratings and detailed reviews
-- **Social Features**: Comment on reviews, vote helpful, and engage with the community
-- **User Profiles**: Customize your profile with bio and reading stats
-
-### Technical Features
-- **RESTful API**: Full API support with JWT authentication
-- **Real-time Search**: Fast book search with PostgreSQL full-text search
-- **Async Operations**: Celery for background tasks and email notifications
-- **Caching**: Redis-based caching for improved performance
-- **External APIs**: Integration with Google Books and OpenLibrary
-- **AI Features**: Book recommendations and review analysis (optional)
-
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Python 3.11+
@@ -69,7 +51,7 @@ Perfect for beginners and experienced developers alike!
    - Admin panel: http://localhost:8000/admin/
    - API docs: http://localhost:8000/api/v1/docs/
 
-### Docker Setup (Recommended for Production)
+### Docker Setup
 
 1. **Copy environment template**
    ```bash
@@ -87,45 +69,34 @@ Perfect for beginners and experienced developers alike!
    docker-compose exec web python manage.py createsuperuser
    ```
 
-## 📋 Project Structure
+## Project Structure
 
 ```
 bookvibe/
 ├── apps/
-│   ├── books/          # Book management and reviews
-│   ├── users/          # User authentication and profiles
+│   ├── books/          # Book models, views, API, services
+│   ├── users/          # Auth, profiles, email verification
 │   ├── reading_lists/  # Personal reading shelves
-│   └── feedback/       # User feedback system
-├── bookvibe/           # Project settings
-├── static/             # Static files (CSS, JS, images)
+│   ├── feed/           # Activity feed
+│   ├── habits/         # Reading tracker & calendar
+│   └── feedback/       # User feedback
+├── bookvibe/           # Django settings, URLs, Celery config
 ├── templates/          # HTML templates
-├── scripts/            # Deployment and setup scripts
-├── nginx/              # Nginx configuration
-└── requirements.txt    # Python dependencies
+├── static/             # CSS, images
+├── scripts/            # Setup & deploy scripts
+├── nginx/              # Nginx config
+└── docker-compose.yml
 ```
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-### Backend
-- **Framework**: Django 4.2
-- **Database**: PostgreSQL 15
-- **Cache**: Redis
-- **Task Queue**: Celery + Redis
-- **API**: Django REST Framework
-- **Authentication**: Django Allauth + JWT
+- **Backend:** Django 4.2, DRF, Celery
+- **Database:** PostgreSQL 15, Redis
+- **Auth:** Django Allauth (Google OAuth) + JWT
+- **Frontend:** Bootstrap 5, Font Awesome
+- **Deploy:** Docker, Nginx, Gunicorn, GitHub Actions
 
-### Frontend
-- **CSS Framework**: Bootstrap 5
-- **Icons**: Font Awesome
-- **Fonts**: Inter, Playfair Display
-
-### DevOps
-- **Containerization**: Docker
-- **Web Server**: Nginx
-- **WSGI Server**: Gunicorn
-- **CI/CD**: GitHub Actions
-
-## 🔧 Configuration
+## Configuration
 
 Key environment variables (see `env_template.md` for full list):
 
@@ -148,55 +119,39 @@ EMAIL_HOST_USER=your-email@gmail.com
 EMAIL_HOST_PASSWORD=your-app-password
 ```
 
-## 📚 API Documentation
+## API
 
-The project includes a full RESTful API with Swagger documentation.
+Main endpoints:
+- `GET /api/v1/books/` — list/search books
+- `POST /api/v1/books/{id}/reviews/` — add review
+- `GET /api/v1/users/profile/` — current user profile
+- `POST /api/v1/auth/token/` — get JWT token
 
-**Endpoints:**
-- `/api/v1/books/` - Book CRUD operations
-- `/api/v1/reviews/` - Review management
-- `/api/v1/users/` - User profiles
-- `/api/v1/auth/token/` - JWT authentication
+## Tests
 
-**API Docs:** http://localhost:8000/api/v1/docs/
-
-## 🧪 Testing
-
-Run tests with coverage:
 ```bash
 python manage.py test
+python manage.py test apps.books  # single app
 ```
 
-Run specific app tests:
-```bash
-python manage.py test apps.books
-```
-
-## 🚢 Deployment
-
-### Using Docker (Recommended)
+## Deployment
 
 ```bash
-# Production deployment
+# Docker
 ./scripts/deploy.sh production
-
-# Check logs
 docker-compose logs -f web
 ```
 
-### Manual Deployment
+Or manually:
+```bash
+python manage.py migrate
+python manage.py collectstatic
+gunicorn bookvibe.wsgi:application
+```
 
-1. Set up PostgreSQL and Redis
-2. Configure environment variables
-3. Run migrations: `python manage.py migrate`
-4. Collect static files: `python manage.py collectstatic`
-5. Start with Gunicorn: `gunicorn bookvibe.wsgi:application`
+See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for full instructions.
 
-### Environment-Specific Guides
-- See `QUICKSTART.md` for detailed local setup
-- See `DEPLOYMENT.md` for production deployment (coming soon)
-
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Here's how you can help:
 
@@ -212,36 +167,11 @@ Contributions are welcome! Here's how you can help:
 - Update documentation as needed
 - Keep commits atomic and well-described
 
-## 📝 License
+## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- Django community for the amazing framework
-- Google Books API for book data
-- OpenLibrary for additional book information
-- All contributors who have helped shape this project
-
-## 📧 Contact
-
-**Fazliddin** - Project Maintainer
-
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Email: your.email@example.com
-
-## 🗺️ Roadmap
-
-- [ ] Mobile app (React Native)
-- [ ] Book clubs and group reading lists
-- [ ] Reading challenges and achievements
-- [ ] Integration with Goodreads
-- [ ] Advanced recommendation engine
-- [ ] Multi-language support
+MIT — see [LICENSE](LICENSE) for details.
 
 ---
 
-**Built with ❤️ by Fazliddin**
-
-*Happy Reading!* 📖
+Built by Fazliddin
 
