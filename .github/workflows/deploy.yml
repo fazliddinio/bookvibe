@@ -94,6 +94,11 @@ jobs:
             docker compose exec -T web python manage.py migrate --noinput
             docker compose exec -T web python manage.py collectstatic --noinput
 
+            # Fix permissions so nginx can serve static/media files
+            chmod o+x /var/lib/docker/ /var/lib/docker/volumes/
+            chmod -R o+rX /var/lib/docker/volumes/bookvibe_static_volume/_data/ 2>/dev/null || true
+            chmod -R o+rX /var/lib/docker/volumes/bookvibe_media_volume/_data/ 2>/dev/null || true
+
             docker image prune -f
 
             sleep 5
