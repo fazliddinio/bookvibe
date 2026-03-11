@@ -1,16 +1,12 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.contrib import messages
 from django.utils import timezone
 from datetime import date, timedelta
 from .models import ReadingHabit
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
 import json
-import calendar
 
 
 class ReadingHabitTrackerView(View):
@@ -187,7 +183,4 @@ def update_reading_details(request):
         return JsonResponse({'success': False, 'error': 'Noto\'g\'ri ma\'lumot formati'}, status=400)
     except Exception as e:
         return JsonResponse({'success': False, 'error': f'Xatolik: {str(e)}'}, status=500)
-
-
-from django.db import models
 

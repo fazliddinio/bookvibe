@@ -251,8 +251,8 @@ class ReplyToCommentView(LoginRequiredMixin, View):
                 messages.error(request, "Javob juda uzun. Maksimal 500 belgi.")
                 return redirect(reverse("books:detail", kwargs={"id": book_id}) + f"#comment-{comment_id}")
 
-            # Create reply directly
-            reply = ReviewComment.objects.create(
+            # Create reply
+            ReviewComment.objects.create(
                 review=review,
                 user=request.user,
                 parent_comment=parent_comment,

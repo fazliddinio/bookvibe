@@ -165,7 +165,6 @@ CORS_ALLOWED_ORIGINS = config(
 )
 
 # Security Settings
-SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
@@ -283,8 +282,7 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = "none"  # Skip email verification for social 
 SOCIALACCOUNT_AUTO_SIGNUP = True  # Automatically create account on social login
 SOCIALACCOUNT_EMAIL_REQUIRED = True  # Require email from social providers
 SOCIALACCOUNT_QUERY_EMAIL = True  # Query the social provider for email
-LOGIN_REDIRECT_URL = "/"  # Redirect to home page after login
-ACCOUNT_LOGOUT_REDIRECT_URL = "/"  # Redirect to home page after logout
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_ADAPTER = "apps.users.adapters.CustomAccountAdapter"  # Custom account adapter
 SOCIALACCOUNT_ADAPTER = "apps.users.adapters.CustomSocialAccountAdapter"  # Custom social adapter
 ACCOUNT_UNIQUE_EMAIL = True  # Ensure email uniqueness

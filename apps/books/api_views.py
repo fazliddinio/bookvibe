@@ -10,7 +10,7 @@ from django.db.models import Count, Q, Avg
 from django_ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
 
-from apps.books.models import Book, Genre, Author, BookReview, ReviewComment, ReviewVote
+from apps.books.models import Book, Genre, Author, BookReview, ReviewVote
 from apps.books.serializers import (
     BookListSerializer, BookDetailSerializer, BookCreateUpdateSerializer,
     GenreSerializer, AuthorSerializer, BookReviewSerializer, ReviewCommentSerializer

@@ -141,39 +141,6 @@ class UserLoginForm(forms.Form):
         return self.cleaned_data
 
 
-class PasswordResetRequestForm(forms.Form):
-    email = forms.EmailField(
-        label="Email",
-        widget=forms.EmailInput(attrs={"placeholder": "Email manzilingizni kiriting"}),
-    )
-
-    def clean_email(self):
-        email = self.cleaned_data.get("email")
-        if not User.objects.filter(email=email).exists():
-            raise forms.ValidationError("Bu email bilan foydalanuvchi topilmadi.")
-        return email
-
-
-class PasswordResetForm(forms.Form):
-    password1 = forms.CharField(
-        label="Yangi Parol",
-        widget=forms.PasswordInput(attrs={"placeholder": "Yangi parolni kiriting"}),
-    )
-    password2 = forms.CharField(
-        label="Parolni Tasdiqlang",
-        widget=forms.PasswordInput(attrs={"placeholder": "Parolni qayta kiriting"}),
-    )
-
-    def clean(self):
-        password1 = self.cleaned_data.get("password1")
-        password2 = self.cleaned_data.get("password2")
-
-        if password1 and password2:
-            if password1 != password2:
-                raise forms.ValidationError("Parollar mos kelmadi.")
-        return self.cleaned_data
-
-
 class UserProfileForm(forms.ModelForm):
     first_name = forms.CharField(
         max_length=30,

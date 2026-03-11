@@ -51,12 +51,6 @@ class ReviewCommentSerializer(serializers.ModelSerializer):
         return []
 
 
-class ReviewVoteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ReviewVote
-        fields = ["id", "vote_type", "created_at"]
-
-
 class BookReviewSerializer(serializers.ModelSerializer):
     user = UserBasicSerializer(read_only=True)
     comments = ReviewCommentSerializer(many=True, read_only=True)

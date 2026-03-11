@@ -8,8 +8,6 @@ from datetime import timedelta
 from .forms import (
     UserRegistrationForm,
     UserLoginForm,
-    PasswordResetRequestForm,
-    PasswordResetForm,
     UserProfileForm,
     EmailVerificationCodeForm,
     UsernameChangeForm,
@@ -188,42 +186,6 @@ def edit_profile_view(request):
     return render(request, "users/profile_edit.html", context)
 
 
-def verify_email_view(request, token):
-    """Verify user email with token"""
-    try:
-        profile = UserProfile.objects.get(email_verification_token=token)
-
-        # Check if token is expired (24 hours)
-        if profile.email_verification_sent_at:
-            token_age = timezone.now() - profile.email_verification_sent_at
-            if token_age > timedelta(hours=24):
-                messages.error(
-                    request,
-                    "Email tasdiqlash havolasining muddati o'tgan. Yangi havolani so'rang.",
-                )
-                return redirect("users:login")
-
-        # Verify email
-        profile.is_email_verified = True
-        profile.save()
-
-        # Activate the user account
-        user = profile.user
-        user.is_active = True
-        user.save()
-        
-        # Automatically log in the user with explicit backend
-        user.backend = 'django.contrib.auth.backends.ModelBackend'
-        login(request, user)
-
-        messages.success(request, "Email muvaffaqiyatli tasdiqlandi! Tizimga kirildi.")
-        return redirect("feed:home")
-
-    except UserProfile.DoesNotExist:
-        messages.error(request, "Noto'g'ri tasdiqlash havolasi.")
-        return redirect("users:login")
-
-
 def verify_email_code_view(request):
     """
     Verify email code and CREATE user in database.
@@ -309,77 +271,6 @@ def verify_email_code_view(request):
         form = EmailVerificationCodeForm()
 
     return render(request, "users/verify_email_code.html", {"form": form})
-
-
-def password_reset_request_view(request):
-    """Request password reset"""
-    if request.method == "POST":
-        form = PasswordResetRequestForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data["email"]
-            try:
-                user = User.objects.get(email=email)
-                profile, created = UserProfile.objects.get_or_create(user=user)
-                if profile.send_password_reset_email():
-                    messages.success(
-                        request, "Parolni tiklash emaili yuborildi! Email qutingizni tekshiring."
-                    )
-                else:
-                    messages.error(
-                        request,
-                        "Parolni tiklash emailini yuborib bo'lmadi. Qaytadan urinib ko'ring.",
-                    )
-            except User.DoesNotExist:
-                # Don't reveal if email exists or not
-                messages.success(
-                    request,
-                    "Agar bu email bilan akkaunt mavjud bo'lsa, parolni tiklash emaili yuborildi.",
-                )
-
-            return redirect("users:login")
-    else:
-        form = PasswordResetRequestForm()
-
-    return render(request, "users/password_reset_request.html", {"form": form})
-
-
-def password_reset_view(request, token):
-    """Reset password with token"""
-    try:
-        profile = UserProfile.objects.get(email_verification_token=token)
-
-        # Check if token is expired (1 hour for password reset)
-        if profile.email_verification_sent_at:
-            token_age = timezone.now() - profile.email_verification_sent_at
-            if token_age > timedelta(hours=1):
-                messages.error(
-                    request,
-                    "Parolni tiklash havolasining muddati o'tgan. Yangi havolani so'rang.",
-                )
-                return redirect("users:password_reset_request")
-
-        if request.method == "POST":
-            form = PasswordResetForm(request.POST)
-            if form.is_valid():
-                password1 = form.cleaned_data["password1"]
-                user = profile.user
-                user.set_password(password1)
-                user.save()
-                messages.success(
-                    request,
-                    "Parol muvaffaqiyatli tiklandi! Endi yangi parolingiz bilan tizimga kirishingiz mumkin.",
-                )
-                return redirect("users:login")
-        else:
-            form = PasswordResetForm()
-
-        return render(
-            request, "users/password_reset.html", {"form": form, "token": token}
-        )
-
-    except UserProfile.DoesNotExist:
-        messages.error(request, "Noto'g'ri parolni tiklash havolasi.")
-        return redirect("users:password_reset_request")
 
 
 def resend_verification_email_view(request):
